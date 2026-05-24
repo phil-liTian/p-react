@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@p-react/shared": ["./packages/shared/src"],
+      "@p-react/react": ["./packages/react/src"],
+      "@p-react/react-reconciler": ["./packages/react-reconciler/src"],
+      "@p-react/react-dom": ["./packages/react-dom/src"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "demo/**/*.ts"
+  ]
+}
