@@ -27,11 +27,10 @@ packages/
 
 按照 React 源码开发规则，逐步实现核心功能：
 
-- [x] JSX → ReactElement 转换
-- [ ] Fiber 数据结构
-- [ ] 渲染阶段（Render Phase）：beginWork + completeWork
-- [ ] 提交阶段（Commit Phase）
-- [ ] Diff 算法
+- [✅] Fiber 数据结构
+- [✅] 渲染阶段（Render Phase）：beginWork + completeWork
+- [✅] 提交阶段（Commit Phase）
+- [✅] Diff 算法
 - [ ] Hooks 实现
 - [ ] 调度器（Scheduler）
 - [ ] Lane 模型

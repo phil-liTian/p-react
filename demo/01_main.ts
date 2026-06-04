@@ -8,8 +8,8 @@ import { createRoot } from '@p-react/react-dom';
 const App = createElement(
   'div',
   { id: 'app', style: { padding: '20px', fontFamily: 'sans-serif' } },
-  createElement('h1', null, 'Hello'),
-  // createElement('p', null, 'This is rendered by p-react (mini React implementation)')
+  createElement('span', null, 'Hello'),
+  createElement('p', null, 'This is rendered by p-react (mini React implementation)')
 );
 
 const root = createRoot(document.getElementById('root')!);

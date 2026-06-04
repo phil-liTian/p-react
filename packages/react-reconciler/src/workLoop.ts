@@ -28,7 +28,7 @@ export function createWorkLoop(hostConfig: HostConfig) {
   function scheduleUpdateOnFiber(fiber: FiberNode) {
     const root = markUpdateFromFiberToRoot(fiber);
     if (root) {
-      performSyncWorkOnRoot(root);
+      performWorkOnRoot(root);
     }
   }
 
@@ -57,7 +57,7 @@ export function createWorkLoop(hostConfig: HostConfig) {
    * 2. workLoopSync — 深度优先遍历，构建完整的 wip 树
    * 3. commitRoot — 将 wip 树的变更同步到真实 DOM
    */
-  function performSyncWorkOnRoot(root: FiberRootNode) {
+  function performWorkOnRoot(root: FiberRootNode) {
     prepareFreshStack(root);
     workLoopSync();
 
@@ -104,6 +104,7 @@ export function createWorkLoop(hostConfig: HostConfig) {
     wip.child = current.child;
     wip.flags = NoFlags;
     wip.subtreeFlags = NoFlags;
+    wip.deletions = null;
     return wip;
   }
 

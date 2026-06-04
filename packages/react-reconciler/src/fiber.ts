@@ -41,6 +41,8 @@ export class FiberNode {
   flags: Flags = NoFlags;
   /** 子树中所有副作用标记的聚合，在 completeWork 中自底向上冒泡收集 */
   subtreeFlags: Flags = NoFlags;
+  /** 本次 reconcile 中需要删除的子节点列表，commit 阶段据此执行 DOM 移除 */
+  deletions: FiberNode[] | null = null;
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     this.tag = tag;

@@ -235,12 +235,12 @@ export function useEffect(
     if (nextDeps !== null) {
       const prevDeps = prevEffect.deps;
       if (areHookInputsEqual(nextDeps, prevDeps)) {
-        hook.memoizedState = pushEffect(HookPassive, create, prevEffect.destroy, nextDeps);
+        hook.memoizedState = pushEffectImpl(HookPassive, create, prevEffect.destroy, nextDeps);
         return;
       }
     }
     fiber.flags |= PassiveEffect;
-    hook.memoizedState = pushEffect(
+    hook.memoizedState = pushEffectImpl(
       HookPassive | HookHasEffect,
       create,
       prevEffect.destroy,
@@ -251,7 +251,7 @@ export function useEffect(
 
   const hook = mountWorkInProgressHook();
   fiber.flags |= PassiveEffect;
-  hook.memoizedState = pushEffect(
+  hook.memoizedState = pushEffectImpl(
     HookPassive | HookHasEffect,
     create,
     undefined,
@@ -311,7 +311,7 @@ function updateWorkInProgressHook(): Hook {
  * 将 effect 推入 fiber.updateQueue 的环形链表
  * lastEffect.next 即第一个 effect，O(1) 访问头尾
  */
-function pushEffect(
+function pushEffectImpl(
   tag: number,
   create: () => (() => void) | void,
   destroy: (() => void) | void,

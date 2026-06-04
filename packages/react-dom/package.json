@@ -1,0 +1,10 @@
+{
+  "name": "@p-react/react-dom",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "type": "module",
+  "dependencies": {
+    "@p-react/react": "workspace:*",
+    "@p-react/react-reconciler": "workspace:*"
+  }
+}
