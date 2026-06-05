@@ -30,11 +30,42 @@ packages/
 - [✅] Fiber 数据结构
 - [✅] 渲染阶段（Render Phase）：beginWork + completeWork
 - [✅] 提交阶段（Commit Phase）
-- [✅] Diff 算法
+- [✅] Diff 算法 - 贪心算法
 - [ ] Hooks 实现
+  - [✅] `useState`
+  - [✅] `useEffect`
+  - [✅] `useReducer`、`useContext`
+  - [ ] `useLayoutEffect`、`useInsertionEffect`
+  - [ ] `useMemo`、`useCallback`
+  - [ ] `useRef`、`useImperativeHandle`
+  - [ ] `useId`、`useTransition`、`useDeferredValue`、`useSyncExternalStore`（React 18）
+  - [ ] `useActionState`、`useFormStatus`、`useOptimistic`（React 19）
 - [ ] 调度器（Scheduler）
 - [ ] Lane 模型
 - [ ] 并发模式
+
+### 内置组件待办
+
+**已有类型（`WorkTags.ts` 中已定义）**
+
+| 组件 | 状态 |
+|---|---|
+| `FunctionComponent` | ✅ |
+| `HostRoot` / `HostComponent` / `HostText` | ✅ |
+
+**待实现**
+
+- [ ] **Fragment**：在 `beginWork` 中识别 `REACT_FRAGMENT_TYPE`，透传子节点列表，无需创建 DOM 节点
+- [ ] **memo**：实现 `updateMemoComponent`，对比 props 浅相等时跳过子树渲染（`REACT_MEMO_TYPE`）
+- [ ] **forwardRef**：实现 `updateForwardRef`，将 `ref` 作为第二个参数传入函数组件（`REACT_FORWARD_REF_TYPE`）
+- [ ] **lazy**：实现 `lazyInitializer`，配合 Suspense 完成动态导入组件的首次加载与缓存（`REACT_LAZY_TYPE`）
+- [ ] **Suspense**：实现 `updateSuspenseComponent`，处理 Promise throw 后的 fallback 切换逻辑（`REACT_SUSPENSE_TYPE`）
+- [ ] **Profiler**：实现 `updateProfiler`，收集 `actualDuration` / `baseDuration` 并触发 `onRender` 回调（`REACT_PROFILER_TYPE`）
+- [ ] **SuspenseList**：实现 `updateSuspenseListComponent`，协调多个 Suspense 子项的加载顺序（`forwards` / `backwards` / `together`）
+- [ ] **Activity**：实现 `updateActivityComponent`，支持 `mode="hidden"` 时跳过提交、保留离屏 Fiber 树状态（React 19，原 Offscreen，`REACT_ACTIVITY_TYPE`）
+- [ ] **ViewTransition**：实现 `updateViewTransitionComponent`，与浏览器 View Transitions API 集成，驱动跨路由动画（React 19，`REACT_VIEW_TRANSITION_TYPE`）
+- [ ] **cache**：实现 `cache()` 包装器，为 React 19 Server Components 提供请求级别的函数结果缓存（`REACT_CACHE_TYPE`）
+- [ ] **StrictMode**：实现 `updateMode`，开发环境下对子树执行双重调用以检测副作用（`REACT_STRICT_MODE_TYPE`）
 
 ## 🚀 快速开始
 
@@ -54,8 +85,11 @@ npm run dev
 
 打开 `demo/index.html` 可以查看运行示例。目前提供了以下示例：
 
-- `demo/useState.ts` - useState 基础使用示例
-- `demo/useEffect.ts` - useEffect 使用示例
+- `demo/01_main.ts` - 基础 ReactElement 渲染
+- `demo/02_functionComponent.ts` - 函数组件渲染
+- `demo/03_update.ts` - 组件更新（Diff）
+- `demo/04_useState.ts` - useState 基础使用
+- `demo/05_useEffect.ts` - useEffect 使用示例
 
 ## 📖 学习指南
 

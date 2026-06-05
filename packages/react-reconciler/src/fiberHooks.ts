@@ -99,6 +99,107 @@ export function renderWithHooks(
   return children;
 }
 
+// --- useReducer ---
+
+/**
+ * useReducer hook
+ * 对应源码: ReactFiberHooks.js → mountReducer / updateReducer
+ */
+export function useReducer<State, Action>(
+  reducer: (state: State, action: Action) => State,
+  initialArg: State
+): [State, (action: Action) => void] {
+  if (isMount) {
+    return mountReducer(reducer, initialArg);
+  }
+  return updateReducer(reducer);
+}
+
+// 对应源码: ReactFiberHooks.js → mountReducer
+function mountReducer<State, Action>(
+  reducer: (state: State, action: Action) => State,
+  initialArg: State
+): [State, (action: Action) => void] {
+  const hook = mountWorkInProgressHook();
+  hook.memoizedState = initialArg;
+
+  const queue: UpdateQueue<State> = {
+    pending: null,
+    lastRenderedState: initialArg,
+  };
+  hook.queue = queue;
+
+  const dispatch = (dispatchReducerAction as any).bind(
+    null,
+    currentlyRenderingFiber!,
+    queue,
+    reducer
+  ) as (action: Action) => void;
+
+  return [hook.memoizedState, dispatch];
+}
+
+// 对应源码: ReactFiberHooks.js → updateReducer
+function updateReducer<State, Action>(
+  reducer: (state: State, action: Action) => State
+): [State, (action: Action) => void] {
+  const hook = updateWorkInProgressHook();
+  const queue = hook.queue as UpdateQueue<State>;
+  const pending = queue.pending;
+
+  let baseState = hook.memoizedState as State;
+
+  if (pending !== null) {
+    const firstUpdate = pending.next!;
+    let update = firstUpdate as Update<State>;
+    do {
+      // useReducer 直接调用外部 reducer 计算新 state，而 useState 用 basicStateReducer
+      baseState = reducer(baseState, update.action as unknown as Action);
+      update = update.next as Update<State>;
+    } while (update !== firstUpdate);
+
+    queue.pending = null;
+  }
+
+  hook.memoizedState = baseState;
+  queue.lastRenderedState = baseState;
+
+  const dispatch = (dispatchReducerAction as any).bind(
+    null,
+    currentlyRenderingFiber!,
+    queue,
+    reducer
+  ) as (action: Action) => void;
+
+  return [baseState, dispatch];
+}
+
+/**
+ * useReducer 的 dispatch 函数
+ * 与 dispatchSetState 的区别：需要携带 reducer 引用，action 直接入队（不走 basicStateReducer）
+ * 对应源码: ReactFiberHooks.js → dispatchReducerAction
+ */
+function dispatchReducerAction<State, Action>(
+  fiber: FiberNode,
+  queue: UpdateQueue<any>,
+  _reducer: (state: State, action: Action) => State,
+  action: Action
+): void {
+  const update: Update<Action> = { action, next: null };
+
+  // 环形链表入队：pending 指向最后一个 update，pending.next 指向第一个
+  const pending = queue.pending;
+  if (pending === null) {
+    update.next = update as any;
+  } else {
+    update.next = pending.next;
+    pending.next = update as any;
+  }
+  queue.pending = update as any;
+
+  scheduleUpdateOnFiberFn!(fiber);
+}
+
 // --- useState ---
 
 /**
