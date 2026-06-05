@@ -7,5 +7,6 @@ export const ChildDeletion = 0b0000100; // 子节点删除
 export const PassiveEffect = 0b0001000; // 存在 useEffect 回调待执行
 export const LayoutEffect = 0b0010000; // 存在 useLayoutEffect 回调待执行
 export const InsertionEffect = 0b0100000; // 存在 useInsertionEffect 回调待执行
+export const RefEffect = 0b1000000; // ref 需要在 commit 阶段绑定/更新
 
 export type Flags = number;

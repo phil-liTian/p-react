@@ -15,6 +15,7 @@ import {
   HookPassive,
   HookLayout,
   HookInsertion,
+  RefEffect,
 } from '@p-react/shared';
 import type { HostConfig } from './hostConfig';
 import type { Effect } from './fiberHooks';
@@ -28,6 +29,8 @@ export function createCommitWork(hostConfig: HostConfig) {
     commitMutationEffects(finishedWork, container);
     // layout effects 同步执行（DOM 已变更、paint 前），对应源码 commitLayoutEffects
     commitLayoutEffects(finishedWork);
+    // ref 绑定：DOM mutation 完成后，将 stateNode 赋给 ref.current
+    commitAttachRefs(finishedWork);
     // 异步调度 passive effects (useEffect)
     schedulePassiveEffects(finishedWork);
   }
@@ -259,6 +262,24 @@ export function createCommitWork(hostConfig: HostConfig) {
 
     if (fiber.child) collectPassiveEffects(fiber.child, effects);
     if (fiber.sibling) collectPassiveEffects(fiber.sibling, effects);
+  }
+
+  /**
+   * 遍历 fiber 树，对标记了 Ref flag 的 HostComponent 执行 ref.current = stateNode
+   * 对应源码: ReactFiberCommitEffects.js → commitAttachRef
+   *
+   * 执行时机：mutation 和 layout 之后，此时 DOM 已是最终状态
+   */
+  function commitAttachRefs(fiber: FiberNode) {
+    if (fiber.tag === HostComponent && fiber.flags & RefEffect) {
+      const ref = fiber.ref;
+      if (ref !== null && typeof ref === 'object') {
+        ref.current = fiber.stateNode;
+      }
+      fiber.flags &= ~RefEffect;
+    }
+    if (fiber.child) commitAttachRefs(fiber.child);
+    if (fiber.sibling) commitAttachRefs(fiber.sibling);
   }
 
   return commitRoot;

@@ -35,7 +35,7 @@ packages/
   - [✅] `useState`
   - [✅] `useEffect`
   - [✅] `useReducer`、`useContext`
-  - [ ] `useLayoutEffect`、`useInsertionEffect`
+  - [✅] `useLayoutEffect`、`useInsertionEffect`
   - [ ] `useMemo`、`useCallback`
   - [ ] `useRef`、`useImperativeHandle`
   - [ ] `useId`、`useTransition`、`useDeferredValue`、`useSyncExternalStore`（React 18）

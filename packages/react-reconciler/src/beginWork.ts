@@ -13,6 +13,7 @@ import {
   Update,
   ChildDeletion,
   NoFlags,
+  RefEffect,
 } from '@p-react/shared';
 
 /**
@@ -58,12 +59,21 @@ function updateHostRoot(
 /**
  * 处理 HostComponent（原生 DOM 元素，如 div、span）
  * 子节点来源：pendingProps.children，即 JSX 中嵌套的子元素
+ * 若 ref 有变化（mount 时有 ref，或 update 时 ref 改变），打 Ref flag
+ * 对应源码: ReactFiberBeginWork.js → updateHostComponent → markRef
  */
 function updateHostComponent(
   current: FiberNode | null,
   workInProgress: FiberNode
 ): FiberNode | null {
   const nextChildren = workInProgress.pendingProps.children;
+  // mount 时 ref 非空，或 update 时 ref 发生变化 → 需要在 commit 阶段绑定
+  if (
+    workInProgress.ref !== null &&
+    (current === null || current.ref !== workInProgress.ref)
+  ) {
+    workInProgress.flags |= RefEffect;
+  }
   reconcileChildren(current, workInProgress, nextChildren);
   return workInProgress.child;
 }
@@ -213,6 +223,7 @@ function reconcileSingleElement(
         // key + type 匹配：复用旧 fiber，删除多余兄弟
         deleteRemainingChildren(returnFiber, child.sibling);
         const existing = useFiber(child, element.props);
+        existing.ref = element.ref ?? null;
         existing.return = returnFiber;
         if (shouldTrackEffects) {
           existing.flags |= Update;
@@ -471,6 +482,7 @@ function updateElement(
 ): FiberNode {
   if (current !== null && current.type === element.type) {
     const existing = useFiber(current, element.props);
+    existing.ref = element.ref ?? null;
     existing.return = returnFiber;
     if (shouldTrackEffects) existing.flags |= Update;
     return existing;
@@ -583,7 +595,7 @@ function createChildFiber(
  * Context（$$typeof === REACT_CONTEXT_TYPE）→ ContextProvider
  */
 function createFiberFromElement(element: ReactElement): FiberNode {
-  const { type, key, props } = element;
+  const { type, key, props, ref } = element;
   let tag: any;
 
   if (typeof type === 'string') {
@@ -603,5 +615,6 @@ function createFiberFromElement(element: ReactElement): FiberNode {
 
   const fiber = new FiberNode(tag, props, key);
   fiber.type = type;
+  fiber.ref = ref ?? null;
   return fiber;
 }

@@ -25,5 +25,5 @@ export function createReconciler(hostConfig: HostConfig) {
 
 export { FiberNode, FiberRootNode } from './fiber';
 export type { HostConfig } from './hostConfig';
-export { useEffect, useState, useReducer, useContext, useLayoutEffect, useInsertionEffect } from './fiberHooks';
+export { useEffect, useState, useReducer, useContext, useLayoutEffect, useInsertionEffect, useRef } from './fiberHooks';
 export type { Effect } from './fiberHooks';

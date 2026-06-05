@@ -555,6 +555,35 @@ function updateInsertionEffect(
   hook.memoizedState = pushEffectImpl(HookInsertion | HookHasEffect, create, prevEffect.destroy, nextDeps);
 }
 
+// --- useRef ---
+
+/**
+ * useRef hook：返回一个持久化的可变对象 {current: initialValue}
+ * 对应源码: ReactFiberHooks.js → mountRef / updateRef
+ *
+ * 与 useState 的区别：修改 .current 不触发重渲染；ref 对象在组件生命周期内始终是同一个引用
+ */
+export function useRef<T>(initialValue: T): { current: T } {
+  if (isMount) {
+    return mountRef(initialValue);
+  }
+  return updateRef<T>();
+}
+
+// 对应源码: ReactFiberHooks.js → mountRef
+function mountRef<T>(initialValue: T): { current: T } {
+  const hook = mountWorkInProgressHook();
+  const ref = { current: initialValue };
+  hook.memoizedState = ref;
+  return ref;
+}
+
+// 对应源码: ReactFiberHooks.js → updateRef
+function updateRef<T>(): { current: T } {
+  const hook = updateWorkInProgressHook();
+  return hook.memoizedState;
+}
+
 // --- useContext ---
 
 /**
