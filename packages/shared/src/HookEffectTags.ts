@@ -5,3 +5,7 @@
 export const HookHasEffect = 0b0001;
 /** useEffect 对应的 passive effect（异步执行，paint 后） */
 export const HookPassive = 0b1000;
+/** useLayoutEffect 对应的 layout effect（同步执行，DOM 变更后、paint 前） */
+export const HookLayout = 0b0100;
+/** useInsertionEffect 对应的 insertion effect（mutation 阶段内、DOM 变更时同步执行） */
+export const HookInsertion = 0b0010;

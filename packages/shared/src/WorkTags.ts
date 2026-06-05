@@ -3,9 +3,11 @@ export const FunctionComponent = 0;
 export const HostRoot = 3; // ReactDOM.createRoot 的根节点
 export const HostComponent = 5; // div, span 等原生标签
 export const HostText = 6; // 文本节点
+export const ContextProvider = 10; // Context.Provider 节点
 
 export type WorkTag =
   | typeof FunctionComponent
   | typeof HostRoot
   | typeof HostComponent
-  | typeof HostText;
+  | typeof HostText
+  | typeof ContextProvider;

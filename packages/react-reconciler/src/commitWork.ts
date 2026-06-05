@@ -8,9 +8,13 @@ import {
   Update,
   ChildDeletion,
   PassiveEffect,
+  LayoutEffect,
+  InsertionEffect,
   NoFlags,
   HookHasEffect,
   HookPassive,
+  HookLayout,
+  HookInsertion,
 } from '@p-react/shared';
 import type { HostConfig } from './hostConfig';
 import type { Effect } from './fiberHooks';
@@ -19,7 +23,11 @@ export function createCommitWork(hostConfig: HostConfig) {
   const { appendChildToContainer, commitUpdate, commitTextUpdate, removeChild } = hostConfig;
 
   function commitRoot(finishedWork: FiberNode, container: any) {
+    // insertion effects 在 mutation 前同步执行，供 CSS-in-JS 注入样式
+    commitInsertionEffects(finishedWork);
     commitMutationEffects(finishedWork, container);
+    // layout effects 同步执行（DOM 已变更、paint 前），对应源码 commitLayoutEffects
+    commitLayoutEffects(finishedWork);
     // 异步调度 passive effects (useEffect)
     schedulePassiveEffects(finishedWork);
   }
@@ -148,6 +156,64 @@ export function createCommitWork(hostConfig: HostConfig) {
       return container;
     }
     return parentFiber.stateNode;
+  }
+
+  /**
+   * insertion effects：mutation 阶段前同步执行，早于 useLayoutEffect
+   * 此时 DOM 尚未被 React 修改，refs 也尚未赋值，仅用于注入 <style> 等副作用
+   * 对应源码: ReactFiberCommitWork.js → commitHookEffectListUnmount(HookInsertion) + commitHookEffectListMount(HookInsertion)
+   */
+  function commitInsertionEffects(fiber: FiberNode) {
+    if (fiber.tag === FunctionComponent && fiber.flags & InsertionEffect) {
+      const updateQueue = fiber.updateQueue as { lastEffect: Effect | null } | null;
+      if (updateQueue && updateQueue.lastEffect) {
+        const lastEffect = updateQueue.lastEffect;
+        let effect = lastEffect.next!;
+        do {
+          if ((effect.tag & HookInsertion) && (effect.tag & HookHasEffect)) {
+            if (effect.destroy) {
+              effect.destroy();
+            }
+            const destroy = effect.create();
+            effect.destroy = destroy === undefined ? undefined : destroy;
+          }
+          effect = effect.next!;
+        } while (effect !== lastEffect.next);
+      }
+      fiber.flags &= ~InsertionEffect;
+    }
+
+    if (fiber.child) commitInsertionEffects(fiber.child);
+    if (fiber.sibling) commitInsertionEffects(fiber.sibling);
+  }
+
+  /**
+   * 同步执行 layout effects，在 mutation 结束、paint 前调用
+   * 对应源码: ReactFiberCommitWork.js → commitLayoutEffects → commitLayoutEffectOnFiber
+   */
+  function commitLayoutEffects(fiber: FiberNode) {
+    if (fiber.tag === FunctionComponent && fiber.flags & LayoutEffect) {
+      const updateQueue = fiber.updateQueue as { lastEffect: Effect | null } | null;
+      if (updateQueue && updateQueue.lastEffect) {
+        const lastEffect = updateQueue.lastEffect;
+        let effect = lastEffect.next!;
+        do {
+          if ((effect.tag & HookLayout) && (effect.tag & HookHasEffect)) {
+            // 先执行上一次的 destroy，再执行新的 create
+            if (effect.destroy) {
+              effect.destroy();
+            }
+            const destroy = effect.create();
+            effect.destroy = destroy === undefined ? undefined : destroy;
+          }
+          effect = effect.next!;
+        } while (effect !== lastEffect.next);
+      }
+      fiber.flags &= ~LayoutEffect;
+    }
+
+    if (fiber.child) commitLayoutEffects(fiber.child);
+    if (fiber.sibling) commitLayoutEffects(fiber.sibling);
   }
 
   /**

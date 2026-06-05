@@ -5,8 +5,10 @@ import {
   HostComponent,
   HostText,
   FunctionComponent,
+  ContextProvider,
   type ReactElement,
   REACT_ELEMENT_TYPE,
+  REACT_CONTEXT_TYPE,
   Placement,
   Update,
   ChildDeletion,
@@ -31,6 +33,8 @@ export function beginWork(
       return updateHostComponent(current, workInProgress);
     case FunctionComponent:
       return updateFunctionComponent(current, workInProgress);
+    case ContextProvider:
+      return updateContextProvider(current, workInProgress);
     case HostText:
       return null;
     default:
@@ -74,6 +78,29 @@ function updateFunctionComponent(
 ): FiberNode | null {
   const Component = workInProgress.type;
   const nextChildren = renderWithHooks(current, workInProgress, Component, workInProgress.pendingProps);
+  reconcileChildren(current, workInProgress, nextChildren);
+  return workInProgress.child;
+}
+
+/**
+ * 处理 ContextProvider（Context.Provider 节点）
+ * 将 props.value 写入 context._currentValue，使子树的 useContext 能读取到最新值
+ * 对应源码: ReactFiberBeginWork.js → updateContextProvider → pushProvider
+ *
+ * 简化差异：源码通过 cursor stack（pushProvider/popProvider）在 completeWork 时恢复旧值，
+ * 以支持嵌套 Provider。p-react 直接覆写 _currentValue，适用于非嵌套场景。
+ */
+function updateContextProvider(
+  current: FiberNode | null,
+  workInProgress: FiberNode
+): FiberNode | null {
+  const context = workInProgress.type;
+  const newValue = workInProgress.pendingProps.value;
+
+  // 将 Provider 的 value 写入 context，子树 useContext 直接读 _currentValue
+  context._currentValue = newValue;
+
+  const nextChildren = workInProgress.pendingProps.children;
   reconcileChildren(current, workInProgress, nextChildren);
   return workInProgress.child;
 }
@@ -552,7 +579,8 @@ function createChildFiber(
 
 /**
  * 从 ReactElement 创建 fiber 节点
- * 根据 element.type 判断 tag：字符串（如 'div'）→ HostComponent，函数 → FunctionComponent
+ * 根据 element.type 判断 tag：字符串（如 'div'）→ HostComponent，函数 → FunctionComponent，
+ * Context（$$typeof === REACT_CONTEXT_TYPE）→ ContextProvider
  */
 function createFiberFromElement(element: ReactElement): FiberNode {
   const { type, key, props } = element;
@@ -562,6 +590,13 @@ function createFiberFromElement(element: ReactElement): FiberNode {
     tag = HostComponent;
   } else if (typeof type === 'function') {
     tag = FunctionComponent;
+  } else if (
+    typeof type === 'object' &&
+    type !== null &&
+    (type as any).$$typeof === REACT_CONTEXT_TYPE
+  ) {
+    // Context.Provider — type 是 context 对象自身（Provider === context）
+    tag = ContextProvider;
   } else {
     tag = HostComponent;
   }

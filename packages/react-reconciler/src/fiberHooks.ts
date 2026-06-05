@@ -1,5 +1,6 @@
 import { FiberNode } from './fiber';
-import { HookHasEffect, HookPassive, PassiveEffect } from '@p-react/shared';
+import { HookHasEffect, HookPassive, HookLayout, HookInsertion, PassiveEffect, LayoutEffect, InsertionEffect } from '@p-react/shared';
+import type { ReactContext } from '@p-react/react';
 
 // --- 类型定义 ---
 
@@ -446,3 +447,126 @@ function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): boolean {
   }
   return true;
 }
+
+// --- useLayoutEffect ---
+
+/**
+ * useLayoutEffect hook：同步执行，DOM 变更后、浏览器 paint 前触发
+ * 对应源码: ReactFiberHooks.js → mountLayoutEffect / updateLayoutEffect
+ *
+ * 与 useEffect 的区别：fiber 上打 LayoutEffect flag（而非 PassiveEffect），
+ * 在 commitRoot 的 layout 阶段同步执行，不走 setTimeout 异步队列
+ */
+export function useLayoutEffect(
+  create: () => (() => void) | void,
+  deps?: any[]
+) {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+
+  if (!isMount) {
+    return updateLayoutEffect(fiber, create, nextDeps);
+  }
+  return mountLayoutEffect(fiber, create, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountLayoutEffect → mountEffectImpl
+function mountLayoutEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(HookLayout | HookHasEffect, create, undefined, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → updateLayoutEffect → updateEffectImpl
+function updateLayoutEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = updateWorkInProgressHook();
+  const prevEffect = hook.memoizedState as Effect;
+
+  if (nextDeps !== null) {
+    if (areHookInputsEqual(nextDeps, prevEffect.deps)) {
+      hook.memoizedState = pushEffectImpl(HookLayout, create, prevEffect.destroy, nextDeps);
+      return;
+    }
+  }
+
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(HookLayout | HookHasEffect, create, prevEffect.destroy, nextDeps);
+}
+
+// --- useInsertionEffect ---
+
+/**
+ * useInsertionEffect hook：mutation 阶段内同步执行，早于 useLayoutEffect
+ * 专为 CSS-in-JS 库设计，在 DOM 变更期间注入样式，确保 useLayoutEffect 读取布局时样式已就绪
+ * 对应源码: ReactFiberHooks.js → mountInsertionEffect / updateInsertionEffect
+ *
+ * 执行时机：mutation 阶段（commitMutationEffects）中，DOM Placement/Update 之前
+ * 与 useLayoutEffect 的区别：更早执行，且无法访问 DOM refs（refs 尚未赋值）
+ */
+export function useInsertionEffect(
+  create: () => (() => void) | void,
+  deps?: any[]
+) {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+
+  if (!isMount) {
+    return updateInsertionEffect(fiber, create, nextDeps);
+  }
+  return mountInsertionEffect(fiber, create, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountInsertionEffect → mountEffectImpl
+function mountInsertionEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= InsertionEffect;
+  hook.memoizedState = pushEffectImpl(HookInsertion | HookHasEffect, create, undefined, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → updateInsertionEffect → updateEffectImpl
+function updateInsertionEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = updateWorkInProgressHook();
+  const prevEffect = hook.memoizedState as Effect;
+
+  if (nextDeps !== null) {
+    if (areHookInputsEqual(nextDeps, prevEffect.deps)) {
+      hook.memoizedState = pushEffectImpl(HookInsertion, create, prevEffect.destroy, nextDeps);
+      return;
+    }
+  }
+
+  fiber.flags |= InsertionEffect;
+  hook.memoizedState = pushEffectImpl(HookInsertion | HookHasEffect, create, prevEffect.destroy, nextDeps);
+}
+
+// --- useContext ---
+
+/**
+ * 读取 Context 的当前值，不消耗 hook slot（不调用 mountWorkInProgressHook）
+ * 对应源码: ReactFiberHooks.js → useContext → readContext
+ * 对应源码: ReactFiberNewContext.js → readContext
+ *
+ * 简化差异：源码中还会收集 context 依赖链（fiber.dependencies），以支持 context 变化时
+ * 精确触发订阅了该 context 的 fiber 重渲染。p-react 省略依赖收集，
+ * 每次渲染时直接读取 context._currentValue 即可满足演示需求。
+ */
+export function useContext<T>(context: ReactContext<T>): T {
+  return context._currentValue;
+}
+
