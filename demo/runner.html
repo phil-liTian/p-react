@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fff;
+    }
+    #error {
+      display: none;
+      color: #ef4444;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="error"></div>
+  <script type="module">
+    import { scripts } from './demo-scripts.ts';
+    const params = new URLSearchParams(location.search);
+    const script = params.get('script');
+    if (script) {
+      const loader = scripts[`./${script}.ts`];
+      if (loader) {
+        loader().catch(e => {
+          const el = document.getElementById('error');
+          el.textContent = e.stack || e.message;
+          el.style.display = 'block';
+        });
+      }
+    }
+  </script>
+</body>
+</html>

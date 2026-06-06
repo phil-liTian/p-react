@@ -11,6 +11,7 @@ description: Use when implementing a new file or function in packages/ of the p-
 1. 对照 `source/packages/` 源码确认函数名和注释
 2. 在 `packages/` 中实现功能
 3. 在 `demo/` 中写演示代码验证功能
+4. 在 `hub/` 中添加实现细节内容
 
 ---
 

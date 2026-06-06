@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p-react · 实现原理 Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    :root {
+      --sidebar-w: 240px;
+      --bg-base: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-overlay: #1c2128;
+      --border: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(124, 58, 237, 0.15);
+      --green: #3fb950;
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── App Layout ── */
+    .app {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-base);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-hexagon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-light);
+      background: var(--accent-glow);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 12px 16px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.1s, color 0.1s;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-overlay);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent-light);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 3px;
+      bottom: 3px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item-num {
+      font-size: 10px;
+      font-family: var(--font-code);
+      color: var(--text-muted);
+      width: 18px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .nav-item.active .nav-item-num { color: var(--accent-light); opacity: 0.7; }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-elevated);
+    }
+
+    /* ── Panel shared ── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      height: 40px;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .panel-icon {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-code);
+    }
+
+    .panel-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.2px;
+    }
+
+    .panel-dot {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .panel-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .panel-path {
+      font-size: 11px;
+      font-family: var(--font-code);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+      border: 1px solid rgba(124, 58, 237, 0.25);
+      border-radius: 4px;
+      padding: 2px 7px;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .panel-spacer { flex: 1; }
+
+    .new-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .new-tab-btn:hover { color: var(--text-secondary); border-color: var(--text-muted); }
+
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-family: var(--font-ui);
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .copy-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* ── Demo Panel ── */
+    .demo-panel {
+      height: 38%;
+      min-height: 120px;
+      flex-shrink: 0;
+    }
+
+    .iframe-wrapper {
+      flex: 1;
+      overflow: hidden;
+      background: #ffffff;
+      position: relative;
+    }
+
+    .iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      z-index: 1;
+      transition: opacity 0.2s;
+    }
+
+    .iframe-loading.hidden { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e5e7eb;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* ── Draggable Divider ── */
+    .resize-divider {
+      height: 5px;
+      background: var(--border);
+      flex-shrink: 0;
+      cursor: row-resize;
+      position: relative;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resize-divider:hover,
+    .resize-divider.dragging {
+      background: var(--accent);
+    }
+
+    .resize-divider::after {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 2px;
+      background: var(--text-muted);
+      border-radius: 1px;
+      opacity: 0.5;
+    }
+
+    .resize-divider:hover::after,
+    .resize-divider.dragging::after {
+      background: #fff;
+      opacity: 0.8;
+    }
+
+    /* ── Code Panel ── */
+    .code-panel {
+      flex: 1;
+      min-height: 100px;
+    }
+
+    .code-wrapper {
+      flex: 1;
+      overflow: auto;
+      background: var(--bg-base);
+    }
+
+    .code-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+    .code-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .code-wrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+    .code-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    /* Override highlight.js background */
+    .code-wrapper .hljs { background: var(--bg-base) !important; }
+
+    pre {
+      margin: 0;
+      padding: 20px 24px;
+      min-height: 100%;
+    }
+
+    code {
+      font-family: var(--font-code) !important;
+      font-size: 12.5px !important;
+      line-height: 1.7 !important;
+      tab-size: 2;
+    }
+
+    /* ── Mobile menu toggle button ── */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .menu-toggle:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    /* ── Mobile overlay ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 99;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    /* ── Mobile: stack vertically, sidebar as drawer ── */
+    @media (max-width: 700px) {
+      body { overflow: hidden; }
+
+      .menu-toggle { display: flex; }
+
+      .app { flex-direction: column; }
+
+      /* Topbar replaces sidebar in normal flow */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        border-right: 1px solid var(--border);
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      /* Mobile topbar */
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        height: 48px;
+        background: var(--bg-base);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .mobile-topbar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .content { height: calc(100vh - 48px); }
+
+      .demo-panel { height: 45%; }
+
+      .panel-path { display: none; }
+      .new-tab-btn { display: none; }
+
+      /* Larger touch targets for nav items */
+      .nav-item { padding: 11px 16px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app">
+  <!-- Mobile Topbar (hidden on desktop) -->
+  <div class="mobile-topbar" id="mobile-topbar" style="display:none">
+    <button class="menu-toggle" id="menu-toggle-top" aria-label="打开菜单">☰</button>
+    <span class="mobile-topbar-title" id="mobile-topbar-title">useState</span>
+    <a class="new-tab-btn" id="new-tab-link-mobile" href="" target="_blank" style="font-size:12px;padding:3px 7px">↗</a>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-hexagon">p</div>
+      <span class="logo-text">p-react</span>
+      <span class="logo-badge">hub</span>
+      <div style="flex:1"></div>
+      <button class="menu-toggle" id="sidebar-close" aria-label="关闭菜单" style="display:none">✕</button>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content" id="content">
+    <!-- Demo Preview Panel -->
+    <div class="panel demo-panel" id="demo-panel">
+      <div class="panel-header">
+        <span class="panel-icon">▶</span>
+        <span class="panel-label">Demo</span>
+        <span class="panel-dot">·</span>
+        <span class="panel-name" id="demo-panel-name">useState</span>
+        <div class="panel-spacer"></div>
+        <a class="new-tab-btn" id="new-tab-link" href="" target="_blank" title="在新标签页打开">
+          ↗ 新标签页
+        </a>
+      </div>
+      <div class="iframe-wrapper">
+        <div class="iframe-loading" id="iframe-loading">
+          <div class="spinner"></div>
+        </div>
+        <iframe id="demo-frame" src="" title="Demo Preview"></iframe>
+      </div>
+    </div>
+
+    <!-- Draggable Divider -->
+    <div class="resize-divider" id="resize-divider"></div>
+
+    <!-- Code Panel -->
+    <div class="panel code-panel" id="code-panel">
+      <div class="panel-header">
+        <span class="panel-icon">{ }</span>
+        <span class="panel-label">核心实现</span>
+        <span class="panel-dot">·</span>
+        <span class="panel-path" id="code-source-path">packages/react-reconciler/src/fiberHooks.ts</span>
+        <div class="panel-spacer"></div>
+        <button class="copy-btn" id="copy-btn">复制代码</button>
+      </div>
+      <div class="code-wrapper" id="code-wrapper">
+        <pre><code class="language-typescript" id="code-content"></code></pre>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 01 · createElement
+     Source: packages/react/src/createElement.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-01">// packages/react/src/createElement.ts
+// JSX 转译后调用此函数，将参数组装成统一的 ReactElement 对象。
+// $$typeof 是运行时安全标记，防止 JSON 被当作 ReactElement 注入。
+
+export function createElement(
+  type: Type,
+  config: Record<string, any> | null,
+  ...maybeChildren: any[]
+): ReactElement {
+  const props: Props = {};
+  let key: Key = null;
+  let ref: Ref = null;
+
+  if (config) {
+    for (const prop in config) {
+      if (prop === 'key') {
+        key = '' + config[prop];
+      } else if (prop === 'ref') {
+        ref = config[prop];
+      } else {
+        props[prop] = config[prop];
+      }
+    }
+  }
+
+  // 单个子节点直接赋值，多个子节点组成数组 —— 与 JSX 编译结果一致
+  if (maybeChildren.length === 1) {
+    props.children = maybeChildren[0];
+  } else if (maybeChildren.length > 1) {
+    props.children = maybeChildren;
+  }
+
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,  // Symbol(react.element)
+    type,                          // 'div' | Function | Context...
+    key,
+    ref,
+    props,
+  };
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 02 · 函数组件
+     Source: beginWork.ts + fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-02">// packages/react-reconciler/src/beginWork.ts
+// 函数组件的 beginWork 处理：调用 renderWithHooks 执行组件函数，
+// 拿到返回的 ReactElement 后交给 reconcileChildren 协调子 fiber。
+
+function updateFunctionComponent(
+  current: FiberNode | null,
+  workInProgress: FiberNode
+): FiberNode | null {
+  const Component = workInProgress.type;
+  const nextChildren = renderWithHooks(
+    current,
+    workInProgress,
+    Component,
+    workInProgress.pendingProps
+  );
+  reconcileChildren(current, workInProgress, nextChildren);
+  return workInProgress.child;
+}
+
+// ─────────────────────────────────────────────────────
+// packages/react-reconciler/src/fiberHooks.ts
+// renderWithHooks: hooks 上下文的建立与清理。
+//
+// 核心：通过 current 是否为 null 以及 current.memoizedState
+// 来判断 mount / update 阶段，使每个 hook 调用走正确的分支
+// (mountWorkInProgressHook vs updateWorkInProgressHook)。
+
+export function renderWithHooks(
+  current: FiberNode | null,
+  workInProgress: FiberNode,
+  Component: Function,
+  props: any
+): any {
+  currentlyRenderingFiber = workInProgress;
+  workInProgress.memoizedState = null;  // 每次渲染重建 hook 链表
+  workInProgress.updateQueue = null;
+
+  if (current !== null && current.memoizedState !== null) {
+    currentHook = current.memoizedState;  // 从 current 的 hook 链表头开始
+    isMount = false;
+  } else {
+    currentHook = null;
+    isMount = true;
+  }
+
+  const children = Component(props);  // ← hooks 在这里被调用
+
+  // 清理全局指针，防止下一次渲染时状态泄漏
+  currentlyRenderingFiber = null;
+  workInProgressHook = null;
+  currentHook = null;
+
+  return children;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 03 · 组件更新
+     Source: packages/react-reconciler/src/workLoop.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-03">// packages/react-reconciler/src/workLoop.ts
+// 更新流程的三个核心函数：入口调度 → 寻根 → 双缓冲渲染。
+
+/**
+ * 调度更新的统一入口，首次 render 和 setState 都通过此函数触发。
+ * 对应源码: ReactFiberWorkLoop.js → scheduleUpdateOnFiber
+ */
+function scheduleUpdateOnFiber(fiber: FiberNode) {
+  const root = markUpdateFromFiberToRoot(fiber);
+  if (root) {
+    performWorkOnRoot(root);
+  }
+}
+
+/**
+ * 从任意 fiber 节点向上找到 FiberRootNode。
+ * 更新可从树中任意位置发起，但渲染必须从根开始。
+ * 源码中还会沿途更新 childLanes，p-react 省略了 Lane 模型。
+ * 对应源码: ReactFiberWorkLoop.js → markUpdateFromFiberToRoot
+ */
+function markUpdateFromFiberToRoot(fiber: FiberNode): FiberRootNode | null {
+  let node = fiber;
+  while (node.return) {
+    node = node.return;
+  }
+  if (node.tag === HostRoot) {
+    return node.stateNode as FiberRootNode;
+  }
+  return null;
+}
+
+/**
+ * 同步渲染完整流程：render 阶段 + commit 阶段。
+ * 对应源码: ReactFiberWorkLoop.js → performWorkOnRoot (同步路径)
+ */
+function performWorkOnRoot(root: FiberRootNode) {
+  prepareFreshStack(root);  // 初始化双缓冲 wip 树
+  workLoopSync();           // 深度优先遍历，构建完整 wip 树
+
+  const finishedWork = root.current.alternate;
+  if (finishedWork) {
+    root.finishedWork = finishedWork;
+    commitRoot(finishedWork, root.container);
+    // 双缓冲切换：wip 树 → current 树，下次更新基于它创建新 wip
+    root.current = finishedWork;
+    root.finishedWork = null;
+  }
+}
+
+/**
+ * 双缓冲核心：基于 current fiber 创建或复用对应的 wip fiber。
+ * 首次渲染：新建 wip 并通过 alternate 互相关联。
+ * 后续更新：复用已有 alternate，仅重置 pendingProps 和 flags。
+ * 对应源码: ReactFiberWorkLoop.js → createWorkInProgress
+ */
+function createWorkInProgress(current: FiberNode): FiberNode {
+  let wip = current.alternate;
+  if (wip === null) {
+    // 首次渲染：current.alternate 为空，新建 wip
+    wip = new FiberNode(current.tag, current.pendingProps, current.key);
+    wip.type = current.type;
+    wip.stateNode = current.stateNode;
+    wip.alternate = current;
+    current.alternate = wip;
+  } else {
+    // 后续更新：复用 alternate，更新 props
+    wip.pendingProps = current.pendingProps;
+  }
+  wip.memoizedProps = current.memoizedProps;
+  wip.memoizedState = current.memoizedState;
+  wip.updateQueue = current.updateQueue;
+  wip.child = current.child;
+  wip.flags = NoFlags;        // 清空副作用标记
+  wip.subtreeFlags = NoFlags;
+  wip.deletions = null;
+  return wip;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 04 · useState
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-04">// packages/react-reconciler/src/fiberHooks.ts
+// useState 本质是预设了 basicStateReducer 的 useReducer。
+// 关键数据结构：hook.queue.pending 是一个环形链表，pending 指向最后一个 Update。
+
+export function useState<State>(
+  initialState: (() => State) | State
+): [State, Dispatch] {
+  return isMount ? mountState(initialState) : updateState();
+}
+
+// ── mount 阶段 ────────────────────────────────────────
+function mountState<State>(initialState: (() => State) | State) {
+  const hook = mountWorkInProgressHook();  // 创建新 hook 节点，挂入链表
+
+  const memoizedState =
+    typeof initialState === 'function' ? initialState() : initialState;
+
+  hook.memoizedState = memoizedState;
+
+  const queue: UpdateQueue<State> = {
+    pending: null,
+    lastRenderedState: memoizedState,
+  };
+  hook.queue = queue;
+
+  // dispatch 通过 bind 固定 fiber 和 queue，闭包陷阱由此规避
+  const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber!, queue);
+  return [memoizedState, dispatch];
+}
+
+// ── update 阶段 ───────────────────────────────────────
+// 遍历 queue.pending 环形链表，依次执行 update.action，计算最终 state。
+function updateState<State>() {
+  const hook = updateWorkInProgressHook();  // 从 current 链表按顺序取 hook
+  const queue = hook.queue as UpdateQueue<State>;
+  const pending = queue.pending;
+  let baseState = hook.memoizedState as State;
+
+  if (pending !== null) {
+    const firstUpdate = pending.next!;       // pending.next 指向链表头
+    let update: Update<State> | null = firstUpdate;
+    do {
+      baseState = basicStateReducer(baseState, update!.action);
+      update = update!.next;
+    } while (update !== firstUpdate);        // 转了一圈，回到头则结束
+    queue.pending = null;
+  }
+
+  hook.memoizedState = baseState;
+  queue.lastRenderedState = baseState;
+  const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber!, queue);
+  return [baseState, dispatch];
+}
+
+// ── dispatchSetState ──────────────────────────────────
+// 创建 Update 入队（环形链表），然后触发 scheduleUpdateOnFiber。
+function dispatchSetState<State>(
+  fiber: FiberNode,
+  queue: UpdateQueue<any>,
+  action: ((prev: State) => State) | State
+): void {
+  const update: Update<State> = { action, next: null };
+
+  const pending = queue.pending;
+  if (pending === null) {
+    update.next = update;           // 只有一个元素，自指形成环
+  } else {
+    update.next = pending.next;     // 新节点的 next → 原链表头
+    pending.next = update;          // 原尾节点的 next → 新节点
+  }
+  queue.pending = update;           // pending 始终指向最后一个
+
+  scheduleUpdateOnFiberFn!(fiber);
+}
+
+// action 是函数则传入 prev，否则直接替换
+function basicStateReducer<State>(state: State, action: any): State {
+  return typeof action === 'function' ? action(state) : action;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 05 · useEffect
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-05">// packages/react-reconciler/src/fiberHooks.ts
+// useEffect 使用 flag 位运算标记副作用，在 commit 阶段异步执行。
+// Effect 对象也组成环形链表，挂在 fiber.updateQueue.lastEffect 上。
+
+export function useEffect(
+  create: () => (() => void) | void,
+  deps?: any[]
+) {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+
+  if (!isMount) {
+    // ── update 阶段 ──
+    const hook = updateWorkInProgressHook();
+    const prevEffect = hook.memoizedState as Effect;
+    if (nextDeps !== null && areHookInputsEqual(nextDeps, prevEffect.deps)) {
+      // deps 未变化：跳过，不打 HookHasEffect 标记
+      hook.memoizedState = pushEffectImpl(HookPassive, create, prevEffect.destroy, nextDeps);
+      return;
+    }
+    // deps 变化：打 PassiveEffect + HookHasEffect，commit 阶段会执行 create
+    fiber.flags |= PassiveEffect;
+    hook.memoizedState = pushEffectImpl(
+      HookPassive | HookHasEffect,
+      create,
+      prevEffect.destroy,
+      nextDeps
+    );
+    return;
+  }
+
+  // ── mount 阶段 ──
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= PassiveEffect;
+  hook.memoizedState = pushEffectImpl(HookPassive | HookHasEffect, create, undefined, nextDeps);
+}
+
+/**
+ * 将 Effect 插入 fiber.updateQueue 的环形链表尾部。
+ * lastEffect.next 始终是第一个 Effect，O(1) 访问头尾。
+ */
+function pushEffectImpl(
+  tag: number,
+  create: () => (() => void) | void,
+  destroy: (() => void) | void,
+  deps: any[] | null
+): Effect {
+  const effect: Effect = { tag, create, destroy, deps, next: null };
+  const fiber = currentlyRenderingFiber!;
+
+  let updateQueue = fiber.updateQueue as FCUpdateQueue | null;
+  if (updateQueue === null) {
+    updateQueue = { lastEffect: null };
+    fiber.updateQueue = updateQueue;
+    effect.next = effect;               // 第一个节点，自指成环
+    updateQueue.lastEffect = effect;
+  } else {
+    const lastEffect = updateQueue.lastEffect!;
+    const firstEffect = lastEffect.next!;
+    lastEffect.next = effect;           // 原尾 → 新节点
+    effect.next = firstEffect;          // 新节点 → 原头
+    updateQueue.lastEffect = effect;    // 更新尾指针
+  }
+  return effect;
+}
+
+function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): boolean {
+  if (prevDeps === null) return false;
+  for (let i = 0; i < nextDeps.length && i < prevDeps.length; i++) {
+    if (!Object.is(nextDeps[i], prevDeps[i])) return false;
+  }
+  return true;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 06 · useReducer
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-06">// packages/react-reconciler/src/fiberHooks.ts
+// useReducer 与 useState 的核心区别：dispatch 时携带外部 reducer，
+// update 阶段直接调用 reducer(prevState, action) 计算新 state。
+
+export function useReducer<State, Action>(
+  reducer: (state: State, action: Action) => State,
+  initialArg: State
+): [State, (action: Action) => void] {
+  return isMount ? mountReducer(reducer, initialArg) : updateReducer(reducer);
+}
+
+// ── mount 阶段 ────────────────────────────────────────
+function mountReducer<State, Action>(
+  reducer: (state: State, action: Action) => State,
+  initialArg: State
+): [State, (action: Action) => void] {
+  const hook = mountWorkInProgressHook();
+  hook.memoizedState = initialArg;
+
+  const queue: UpdateQueue<State> = { pending: null, lastRenderedState: initialArg };
+  hook.queue = queue;
+
+  // reducer 通过 bind 绑定到 dispatch，update 阶段取出后直接调用
+  const dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber!, queue, reducer);
+  return [hook.memoizedState, dispatch];
+}
+
+// ── update 阶段 ───────────────────────────────────────
+// 与 updateState 的差异：使用外部 reducer 而非 basicStateReducer
+function updateReducer<State, Action>(
+  reducer: (state: State, action: Action) => State
+): [State, (action: Action) => void] {
+  const hook = updateWorkInProgressHook();
+  const queue = hook.queue as UpdateQueue<State>;
+  const pending = queue.pending;
+  let baseState = hook.memoizedState as State;
+
+  if (pending !== null) {
+    const firstUpdate = pending.next!;
+    let update = firstUpdate as Update<State>;
+    do {
+      // useReducer 直接调用外部 reducer，useState 用 basicStateReducer
+      baseState = reducer(baseState, update.action as unknown as Action);
+      update = update.next as Update<State>;
+    } while (update !== firstUpdate);
+    queue.pending = null;
+  }
+
+  hook.memoizedState = baseState;
+  queue.lastRenderedState = baseState;
+  const dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber!, queue, reducer);
+  return [baseState, dispatch];
+}
+
+// action 直接入队（不走 basicStateReducer），reducer 在 update 时调用
+function dispatchReducerAction<State, Action>(
+  fiber: FiberNode,
+  queue: UpdateQueue<any>,
+  _reducer: (state: State, action: Action) => State,
+  action: Action
+): void {
+  const update: Update<Action> = { action, next: null };
+  const pending = queue.pending;
+  if (pending === null) {
+    update.next = update as any;
+  } else {
+    update.next = pending.next;
+    pending.next = update as any;
+  }
+  queue.pending = update as any;
+  scheduleUpdateOnFiberFn!(fiber);
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 07 · useContext
+     Source: createContext.ts + beginWork.ts + fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-07">// packages/react/src/createContext.ts
+// Context 对象本身就是 Provider（context.Provider === context），
+// beginWork 通过 $$typeof === REACT_CONTEXT_TYPE 识别。
+
+export function createContext<T>(defaultValue: T): ReactContext<T> {
+  const context: ReactContext<T> = {
+    $$typeof: REACT_CONTEXT_TYPE,
+    _currentValue: defaultValue,
+    Provider: null as any,
+  };
+  context.Provider = context;  // Provider 指向自身
+  return context;
+}
+
+// ─────────────────────────────────────────────────────
+// packages/react-reconciler/src/beginWork.ts
+// Provider 的 beginWork：将 props.value 写入 context._currentValue，
+// 使整个子树的 useContext 都能读到最新值。
+//
+// 简化差异：源码通过 cursor stack (pushProvider/popProvider) 支持嵌套
+// Provider，p-react 直接覆写 _currentValue，适用于非嵌套场景。
+
+function updateContextProvider(
+  current: FiberNode | null,
+  workInProgress: FiberNode
+): FiberNode | null {
+  const context = workInProgress.type;
+  const newValue = workInProgress.pendingProps.value;
+
+  context._currentValue = newValue;  // 子树 useContext 直接读此值
+
+  const nextChildren = workInProgress.pendingProps.children;
+  reconcileChildren(current, workInProgress, nextChildren);
+  return workInProgress.child;
+}
+
+// ─────────────────────────────────────────────────────
+// packages/react-reconciler/src/fiberHooks.ts
+// useContext 不消耗 hook slot，直接读 context._currentValue。
+//
+// 源码中还会收集 context 依赖到 fiber.dependencies，以支持
+// context 变化时精确触发订阅 fiber 重渲染。p-react 省略依赖收集。
+
+export function useContext<T>(context: ReactContext<T>): T {
+  return context._currentValue;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 08 · useLayoutEffect
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-08">// packages/react-reconciler/src/fiberHooks.ts
+// useLayoutEffect 与 useEffect 的实现几乎相同，
+// 唯一区别：打的是 LayoutEffect flag，而非 PassiveEffect。
+//
+// ┌──────────────────────────────────────────────────────────┐
+// │ useInsertionEffect  →  mutation 阶段  (DOM 变更期间)      │
+// │ useLayoutEffect     →  layout 阶段   (DOM 变更后，同步)   │
+// │ useEffect           →  passive 阶段  (paint 后，异步)     │
+// └──────────────────────────────────────────────────────────┘
+
+export function useLayoutEffect(
+  create: () => (() => void) | void,
+  deps?: any[]
+) {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+  return isMount
+    ? mountLayoutEffect(fiber, create, nextDeps)
+    : updateLayoutEffect(fiber, create, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountLayoutEffect → mountEffectImpl
+// 关键：fiber.flags |= LayoutEffect（而不是 PassiveEffect）
+function mountLayoutEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= LayoutEffect;  // ← 与 useEffect 的唯一区别
+  hook.memoizedState = pushEffectImpl(HookLayout | HookHasEffect, create, undefined, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → updateLayoutEffect → updateEffectImpl
+function updateLayoutEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = updateWorkInProgressHook();
+  const prevEffect = hook.memoizedState as Effect;
+
+  if (nextDeps !== null && areHookInputsEqual(nextDeps, prevEffect.deps)) {
+    // deps 不变：不打 HookHasEffect，layout 阶段跳过此 effect
+    hook.memoizedState = pushEffectImpl(HookLayout, create, prevEffect.destroy, nextDeps);
+    return;
+  }
+
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(
+    HookLayout | HookHasEffect,
+    create,
+    prevEffect.destroy,
+    nextDeps
+  );
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 09 · useInsertionEffect
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-09">// packages/react-reconciler/src/fiberHooks.ts
+// useInsertionEffect 是三类 effect 中执行最早的，在 mutation 阶段
+// DOM 操作期间同步执行，专为 CSS-in-JS 库设计：在 useLayoutEffect
+// 读取 layout 之前注入 <style>，确保样式已就绪。
+//
+// 执行时机对比：
+//   useInsertionEffect  → commitMutationEffects（mutation，DOM 变更中）
+//   useLayoutEffect     → commitLayoutEffects（layout，DOM 变更后）
+//   useEffect           → flushPassiveEffects（passive，paint 后异步）
+//
+// 注意：useInsertionEffect 执行时 DOM refs 尚未赋值，无法访问 DOM 引用。
+
+export function useInsertionEffect(
+  create: () => (() => void) | void,
+  deps?: any[]
+) {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+  return isMount
+    ? mountInsertionEffect(fiber, create, nextDeps)
+    : updateInsertionEffect(fiber, create, nextDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountInsertionEffect → mountEffectImpl
+// 关键：fiber.flags |= InsertionEffect
+function mountInsertionEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= InsertionEffect;  // ← 最早的 effect flag
+  hook.memoizedState = pushEffectImpl(
+    HookInsertion | HookHasEffect,
+    create,
+    undefined,
+    nextDeps
+  );
+}
+
+// 对应源码: ReactFiberHooks.js → updateInsertionEffect → updateEffectImpl
+function updateInsertionEffect(
+  fiber: FiberNode,
+  create: () => (() => void) | void,
+  nextDeps: any[] | null
+) {
+  const hook = updateWorkInProgressHook();
+  const prevEffect = hook.memoizedState as Effect;
+
+  if (nextDeps !== null && areHookInputsEqual(nextDeps, prevEffect.deps)) {
+    hook.memoizedState = pushEffectImpl(
+      HookInsertion,
+      create,
+      prevEffect.destroy,
+      nextDeps
+    );
+    return;
+  }
+
+  fiber.flags |= InsertionEffect;
+  hook.memoizedState = pushEffectImpl(
+    HookInsertion | HookHasEffect,
+    create,
+    prevEffect.destroy,
+    nextDeps
+  );
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 10 · useRef
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-10">// packages/react-reconciler/src/fiberHooks.ts
+// useRef 是最简单的 hook：mount 时创建 {current} 对象并存入 hook，
+// update 时直接返回同一对象（不重新创建）。
+//
+// 与 useState 的核心区别：
+//   - useState：修改 state → 触发重渲染
+//   - useRef：修改 .current → 不触发重渲染，对象引用在组件生命周期内不变
+//
+// ref 绑定 DOM 的逻辑在 beginWork (RefEffect flag) + commitWork (commitAttachRef) 中。
+
+export function useRef<T>(initialValue: T): { current: T } {
+  return isMount ? mountRef(initialValue) : updateRef<T>();
+}
+
+// 对应源码: ReactFiberHooks.js → mountRef
+function mountRef<T>(initialValue: T): { current: T } {
+  const hook = mountWorkInProgressHook();
+  const ref = { current: initialValue };
+  hook.memoizedState = ref;  // 整个 ref 对象存入 memoizedState
+  return ref;
+}
+
+// 对应源码: ReactFiberHooks.js → updateRef
+// update 阶段直接返回 memoizedState 中存的同一个 ref 对象
+function updateRef<T>(): { current: T } {
+  const hook = updateWorkInProgressHook();
+  return hook.memoizedState;  // 返回原始对象，.current 的变更不被追踪
+}
+
+// ─────────────────────────────────────────────────────
+// packages/react-reconciler/src/beginWork.ts
+// DOM ref 绑定：updateHostComponent 检测到 ref 变化时打 RefEffect flag
+
+function updateHostComponent(current: FiberNode | null, workInProgress: FiberNode) {
+  if (
+    workInProgress.ref !== null &&
+    (current === null || current.ref !== workInProgress.ref)
+  ) {
+    workInProgress.flags |= RefEffect;  // 告诉 commit 阶段需要绑定 ref
+  }
+  // ...
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 11 · useImperativeHandle
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-11">// packages/react-reconciler/src/fiberHooks.ts
+// useImperativeHandle 本质是一个 layout effect：
+// 在 commit layout 阶段执行 create()，将结果写入父组件持有的 ref.current，
+// cleanup 时将 ref.current 置为 null。
+
+export function useImperativeHandle<T>(
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined,
+  create: () => T,
+  deps?: any[]
+): void {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+  // ref 加入依赖，ref 对象变化时同步更新
+  const effectDeps = nextDeps !== null ? [...nextDeps, ref] : null;
+
+  if (!isMount) {
+    return updateImperativeHandle(fiber, ref, create, effectDeps);
+  }
+  return mountImperativeHandle(fiber, ref, create, effectDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountImperativeHandle → mountEffectImpl
+// 以 layout effect 形式注册，commit layout 阶段执行 imperativeHandleEffect
+function mountImperativeHandle<T>(
+  fiber: FiberNode,
+  ref: any,
+  create: () => T,
+  effectDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(
+    HookLayout | HookHasEffect,
+    imperativeHandleEffect.bind(null, create, ref),  // create + ref 绑定
+    undefined,
+    effectDeps
+  );
+}
+
+// 对应源码: ReactFiberHooks.js → imperativeHandleEffect
+// 将 create() 的返回值写入 ref.current，并返回 cleanup 函数
+function imperativeHandleEffect<T>(
+  create: () => T,
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined
+): (() => void) | void {
+  if (typeof ref === 'function') {
+    const inst = create();
+    ref(inst);                       // 函数形式 ref：调用并传入实例
+    return () => ref(null);
+  } else if (ref !== null && ref !== undefined) {
+    ref.current = create();          // 对象形式 ref：写入 .current
+    return () => { ref.current = null; };
+  }
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 12 · useMemo
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-12">// packages/react-reconciler/src/fiberHooks.ts
+// useMemo 缓存 create() 的计算结果，deps 不变时直接返回缓存值。
+// hook.memoizedState 存 [value, deps] 元组，与 useEffect 的存储方式对称。
+
+export function useMemo<T>(create: () => T, deps?: any[]): T {
+  return isMount ? mountMemo(create, deps) : updateMemo(create, deps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountMemo
+function mountMemo<T>(create: () => T, deps?: any[]): T {
+  const hook = mountWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  const nextValue = create();                        // mount 时立即执行
+  hook.memoizedState = [nextValue, nextDeps];        // 存 [value, deps] 元组
+  return nextValue;
+}
+
+// 对应源码: ReactFiberHooks.js → updateMemo
+function updateMemo<T>(create: () => T, deps?: any[]): T {
+  const hook = updateWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  const prevState = hook.memoizedState as [T, any[] | null];
+
+  if (nextDeps !== null && areHookInputsEqual(nextDeps, prevState[1])) {
+    return prevState[0];    // deps 未变化：返回上次缓存的 value，跳过 create()
+  }
+
+  const nextValue = create();   // deps 变化：重新计算
+  hook.memoizedState = [nextValue, nextDeps];
+  return nextValue;
+}
+
+// ── areHookInputsEqual ────────────────────────────────
+// 所有 deps 比较的通用函数（useEffect / useMemo / useCallback 共用）
+// 使用 Object.is 实现严格相等，与 === 的区别：
+//   Object.is(NaN, NaN) → true
+//   Object.is(+0, -0)   → false
+function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): boolean {
+  if (prevDeps === null) return false;
+  for (let i = 0; i < nextDeps.length && i < prevDeps.length; i++) {
+    if (!Object.is(nextDeps[i], prevDeps[i])) return false;
+  }
+  return true;
+}
+</script>
+
+<!-- highlight.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script>
+  // ── Demo metadata ─────────────────────────────────────────────
+  const demos = [
+    {
+      id: '01', name: 'createElement', script: '01_main', group: '基础渲染',
+      sourcePath: 'packages/react/src/createElement.ts',
+      snippetId: 'snippet-01',
+    },
+    {
+      id: '02', name: '函数组件', script: '02_functionComponent', group: '基础渲染',
+      sourcePath: 'packages/react-reconciler/src/beginWork.ts · fiberHooks.ts',
+      snippetId: 'snippet-02',
+    },
+    {
+      id: '03', name: '组件更新', script: '03_update', group: '基础渲染',
+      sourcePath: 'packages/react-reconciler/src/workLoop.ts',
+      snippetId: 'snippet-03',
+    },
+    {
+      id: '04', name: 'useState', script: '04_useState', group: 'State',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-04',
+    },
+    {
+      id: '06', name: 'useReducer', script: '06_useReducer', group: 'State',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-06',
+    },
+    {
+      id: '05', name: 'useEffect', script: '05_useEffect', group: 'Effects',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-05',
+    },
+    {
+      id: '08', name: 'useLayoutEffect', script: '08_useLayoutEffect', group: 'Effects',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-08',
+    },
+    {
+      id: '09', name: 'useInsertionEffect', script: '09_useInsertionEffect', group: 'Effects',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-09',
+    },
+    {
+      id: '07', name: 'useContext', script: '07_useContext', group: 'Context & Ref',
+      sourcePath: 'packages/react/src/createContext.ts · beginWork.ts · fiberHooks.ts',
+      snippetId: 'snippet-07',
+    },
+    {
+      id: '10', name: 'useRef', script: '10_useRef', group: 'Context & Ref',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-10',
+    },
+    {
+      id: '11', name: 'useImperativeHandle', script: '11_useImperativeHandle', group: 'Context & Ref',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-11',
+    },
+    {
+      id: '12', name: 'useMemo', script: '12_useMemo', group: '性能优化',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-12',
+    },
+  ];
+
+  // ── DOM refs ──────────────────────────────────────────────────
+  const sidebarNav   = document.getElementById('sidebar-nav');
+  const demoFrame    = document.getElementById('demo-frame');
+  const demoPanelEl  = document.getElementById('demo-panel');
+  const demoPanelName = document.getElementById('demo-panel-name');
+  const newTabLink   = document.getElementById('new-tab-link');
+  const iframeLoading = document.getElementById('iframe-loading');
+  const resizeDivider = document.getElementById('resize-divider');
+  const codeContent  = document.getElementById('code-content');
+  const codeSourcePath = document.getElementById('code-source-path');
+  const copyBtn      = document.getElementById('copy-btn');
+  const contentEl    = document.getElementById('content');
+
+  // Mobile elements
+  const sidebarEl      = document.querySelector('.sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const mobileTopbar   = document.getElementById('mobile-topbar');
+  const menuToggleTop  = document.getElementById('menu-toggle-top');
+  const sidebarClose   = document.getElementById('sidebar-close');
+  const mobileTopbarTitle = document.getElementById('mobile-topbar-title');
+  const newTabLinkMobile  = document.getElementById('new-tab-link-mobile');
+
+  // ── Mobile detection + responsive setup ──────────────────────
+  const mq = window.matchMedia('(max-width: 700px)');
+
+  function applyMobileLayout(isMobile) {
+    mobileTopbar.style.display = isMobile ? 'flex' : 'none';
+    sidebarClose.style.display = isMobile ? 'flex' : 'none';
+    if (!isMobile) closeSidebar();
+  }
+
+  function openSidebar() {
+    sidebarEl.classList.add('open');
+    sidebarOverlay.classList.add('visible');
+  }
+
+  function closeSidebar() {
+    sidebarEl.classList.remove('open');
+    sidebarOverlay.classList.remove('visible');
+  }
+
+  menuToggleTop.addEventListener('click', openSidebar);
+  sidebarClose.addEventListener('click', closeSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+
+  mq.addEventListener('change', e => applyMobileLayout(e.matches));
+  applyMobileLayout(mq.matches);
+
+  // ── Render sidebar ────────────────────────────────────────────
+  const groups = [];
+  const seen = new Set();
+  demos.forEach(d => {
+    if (!seen.has(d.group)) { groups.push(d.group); seen.add(d.group); }
+  });
+
+  groups.forEach(group => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'nav-group';
+
+    const label = document.createElement('div');
+    label.className = 'nav-group-label';
+    label.textContent = group;
+    groupEl.appendChild(label);
+
+    demos.filter(d => d.group === group).forEach(demo => {
+      const item = document.createElement('div');
+      item.className = 'nav-item';
+      item.dataset.id = demo.id;
+      item.innerHTML = `<span class="nav-item-num">${demo.id}</span>${demo.name}`;
+      item.addEventListener('click', () => selectDemo(demo));
+      groupEl.appendChild(item);
+    });
+
+    sidebarNav.appendChild(groupEl);
+  });
+
+  // ── Select demo ───────────────────────────────────────────────
+  let currentDemo = null;
+
+  function selectDemo(demo) {
+    if (currentDemo && currentDemo.id === demo.id) return;
+    currentDemo = demo;
+
+    // Update sidebar active state
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === demo.id);
+    });
+
+    // Update demo panel
+    demoPanelName.textContent = demo.name;
+    const runnerUrl = `runner.html?script=${demo.script}`;
+    newTabLink.href = runnerUrl;
+    mobileTopbarTitle.textContent = demo.name;
+    newTabLinkMobile.href = runnerUrl;
+
+    iframeLoading.classList.remove('hidden');
+    demoFrame.src = runnerUrl;
+
+    // Update code panel
+    codeSourcePath.textContent = demo.sourcePath;
+    const snippet = document.getElementById(demo.snippetId);
+    const code = snippet ? snippet.textContent.trim() : '// 暂无代码片段';
+    codeContent.textContent = code;
+    hljs.highlightElement(codeContent);
+
+    // Scroll code to top
+    document.getElementById('code-wrapper').scrollTop = 0;
+
+    // Close mobile sidebar after selection
+    closeSidebar();
+  }
+
+  // Hide iframe loading overlay on load
+  demoFrame.addEventListener('load', () => {
+    iframeLoading.classList.add('hidden');
+  });
+
+  // ── Draggable divider (mouse + touch) ────────────────────────
+  let isDragging = false;
+  let dragStartY = 0;
+  let dragStartHeight = 0;
+  let pendingHeight = null;
+  let rafId = null;
+
+  function startDrag(clientY) {
+    isDragging = true;
+    dragStartY = clientY;
+    dragStartHeight = demoPanelEl.offsetHeight;
+    demoPanelEl.style.flexShrink = '0';
+    demoFrame.style.pointerEvents = 'none';
+    resizeDivider.classList.add('dragging');
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  function moveDrag(clientY) {
+    if (!isDragging) return;
+    const dy = clientY - dragStartY;
+    const contentH = contentEl.offsetHeight;
+    const minH = 80;
+    const maxH = contentH - 120;
+    pendingHeight = Math.max(minH, Math.min(dragStartHeight + dy, maxH));
+    if (rafId === null) {
+      rafId = requestAnimationFrame(() => {
+        demoPanelEl.style.height = pendingHeight + 'px';
+        rafId = null;
+      });
+    }
+  }
+
+  function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    demoFrame.style.pointerEvents = '';
+    resizeDivider.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+
+  resizeDivider.addEventListener('mousedown', (e) => { startDrag(e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', (e) => moveDrag(e.clientY));
+  document.addEventListener('mouseup', endDrag);
+
+  resizeDivider.addEventListener('touchstart', (e) => { startDrag(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchmove', (e) => { if (isDragging) { moveDrag(e.touches[0].clientY); e.preventDefault(); } }, { passive: false });
+  document.addEventListener('touchend', endDrag);
+
+  // ── Copy button ───────────────────────────────────────────────
+  copyBtn.addEventListener('click', () => {
+    const text = codeContent.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = '已复制 ✓';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = '复制代码';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    });
+  });
+
+  // ── Init: select useState as default ─────────────────────────
+  selectDemo(demos.find(d => d.id === '04'));
+</script>
+</body>
+</html>

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "npm run dev",
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview",
+    "publish": "bash publish.sh"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
