@@ -667,6 +667,47 @@ function imperativeHandleEffect<T>(
   }
 }
 
+// --- useMemo ---
+
+/**
+ * 缓存 create() 的计算结果，deps 不变时直接返回上次缓存值，避免重复昂贵计算
+ * 对应源码: ReactFiberHooks.js → mountMemo / updateMemo
+ *
+ * 与源码的主要差异：省略了 StrictMode 下的 double-invoke 校验
+ */
+export function useMemo<T>(create: () => T, deps?: any[]): T {
+  if (isMount) {
+    return mountMemo(create, deps);
+  }
+  return updateMemo(create, deps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountMemo
+function mountMemo<T>(create: () => T, deps?: any[]): T {
+  const hook = mountWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  const nextValue = create();
+  // 将 [value, deps] 存入 memoizedState，与 useEffect 的 [effect, deps] 结构保持对称
+  hook.memoizedState = [nextValue, nextDeps];
+  return nextValue;
+}
+
+// 对应源码: ReactFiberHooks.js → updateMemo
+function updateMemo<T>(create: () => T, deps?: any[]): T {
+  const hook = updateWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  const prevState = hook.memoizedState as [T, any[] | null];
+  if (nextDeps !== null) {
+    const prevDeps = prevState[1];
+    if (areHookInputsEqual(nextDeps, prevDeps)) {
+      return prevState[0];
+    }
+  }
+  const nextValue = create();
+  hook.memoizedState = [nextValue, nextDeps];
+  return nextValue;
+}
+
 // --- useContext ---
 
 /**
