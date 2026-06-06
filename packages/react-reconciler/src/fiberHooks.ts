@@ -584,6 +584,89 @@ function updateRef<T>(): { current: T } {
   return hook.memoizedState;
 }
 
+// --- useImperativeHandle ---
+
+/**
+ * 将 create() 返回的方法集合暴露给父组件持有的 ref
+ * 对应源码: ReactFiberHooks.js → mountImperativeHandle / updateImperativeHandle
+ *
+ * 实现方式：以 layout effect 的形式，在 commit 阶段将 create() 结果写入 ref.current，
+ * 并在 cleanup 时将 ref.current 置 null。deps 变化才重新执行 create()。
+ */
+export function useImperativeHandle<T>(
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined,
+  create: () => T,
+  deps?: any[]
+): void {
+  const fiber = currentlyRenderingFiber!;
+  const nextDeps = deps === undefined ? null : deps;
+  // ref 加入依赖，保证 ref 对象变化时同步更新
+  const effectDeps = nextDeps !== null ? [...nextDeps, ref] : null;
+
+  if (!isMount) {
+    return updateImperativeHandle(fiber, ref, create, effectDeps);
+  }
+  return mountImperativeHandle(fiber, ref, create, effectDeps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountImperativeHandle → mountEffectImpl
+function mountImperativeHandle<T>(
+  fiber: FiberNode,
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined,
+  create: () => T,
+  effectDeps: any[] | null
+) {
+  const hook = mountWorkInProgressHook();
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(
+    HookLayout | HookHasEffect,
+    (imperativeHandleEffect as any).bind(null, create, ref),
+    undefined,
+    effectDeps
+  );
+}
+
+// 对应源码: ReactFiberHooks.js → updateImperativeHandle → updateEffectImpl
+function updateImperativeHandle<T>(
+  fiber: FiberNode,
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined,
+  create: () => T,
+  effectDeps: any[] | null
+) {
+  const hook = updateWorkInProgressHook();
+  const prevEffect = hook.memoizedState as Effect;
+
+  if (effectDeps !== null) {
+    if (areHookInputsEqual(effectDeps, prevEffect.deps)) {
+      hook.memoizedState = pushEffectImpl(HookLayout, (imperativeHandleEffect as any).bind(null, create, ref), prevEffect.destroy, effectDeps);
+      return;
+    }
+  }
+
+  fiber.flags |= LayoutEffect;
+  hook.memoizedState = pushEffectImpl(
+    HookLayout | HookHasEffect,
+    (imperativeHandleEffect as any).bind(null, create, ref),
+    prevEffect.destroy,
+    effectDeps
+  );
+}
+
+// 对应源码: ReactFiberHooks.js → imperativeHandleEffect
+function imperativeHandleEffect<T>(
+  create: () => T,
+  ref: { current: T | null } | ((inst: T | null) => void) | null | undefined
+): (() => void) | void {
+  if (typeof ref === 'function') {
+    const inst = create();
+    ref(inst);
+    return () => ref(null);
+  } else if (ref !== null && ref !== undefined) {
+    ref.current = create();
+    return () => { ref.current = null; };
+  }
+}
+
 // --- useContext ---
 
 /**
