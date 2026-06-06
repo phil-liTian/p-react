@@ -1340,6 +1340,38 @@ function updateCallback<T extends Function>(callback: T, deps?: any[]): T {
 // 本质上 useCallback(fn, deps) === useMemo(() => fn, deps)
 </script>
 
+<!-- ═══════════════════════════════════════════════════════
+     Snippet 14 · useId
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-14">// packages/react-reconciler/src/fiberHooks.ts
+// useId 生成页面唯一且渲染间稳定的 ID，用于无障碍属性关联
+
+// 全局递增计数器，确保同一页面内每次 mount 拿到不同 ID
+// 对应源码: ReactFiberHooks.js → globalClientIdCounter
+let globalClientIdCounter: number = 0;
+
+export function useId(): string {
+  if (isMount) return mountId();
+  return updateId();
+}
+
+// 对应源码: ReactFiberHooks.js → mountId
+function mountId(): string {
+  const hook = mountWorkInProgressHook();
+  // 客户端格式 '_r_N_'，与源码一致；SSR 水合路径（'_RxH_'）已省略
+  const id = '_r_' + globalClientIdCounter++ + '_';
+  hook.memoizedState = id;
+  return id;
+}
+
+// 对应源码: ReactFiberHooks.js → updateId
+function updateId(): string {
+  const hook = updateWorkInProgressHook();
+  return hook.memoizedState as string; // ID 在 mount 后保持稳定，直接返回
+}
+</script>
+
 <!-- highlight.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
@@ -1410,6 +1442,11 @@ function updateCallback<T extends Function>(callback: T, deps?: any[]): T {
       id: '13', name: 'useCallback', script: '13_useCallback', group: '性能优化',
       sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
       snippetId: 'snippet-13',
+    },
+    {
+      id: '14', name: 'useId', script: '14_useId', group: '性能优化',
+      sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+      snippetId: 'snippet-14',
     },
   ];
 

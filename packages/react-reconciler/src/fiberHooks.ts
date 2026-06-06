@@ -761,3 +761,38 @@ export function useContext<T>(context: ReactContext<T>): T {
   return context._currentValue;
 }
 
+// --- useId ---
+
+// 对应源码: ReactFiberHooks.js → globalClientIdCounter（全局递增计数器）
+let globalClientIdCounter: number = 0;
+
+/**
+ * 生成在当前页面唯一的稳定 ID，常用于无障碍属性（aria-labelledby 等）的关联
+ * 对应源码: ReactFiberHooks.js → mountId / updateId
+ *
+ * 简化差异：源码在 SSR 水合时会读取 root.identifierPrefix 和 treeId 生成服务端 ID（'_Rxx_'）；
+ * p-react 仅实现客户端路径，格式为 '_r_N_'（N 为全局递增整数）
+ */
+export function useId(): string {
+  if (isMount) {
+    return mountId();
+  }
+  return updateId();
+}
+
+// 对应源码: ReactFiberHooks.js → mountId
+function mountId(): string {
+  const hook = mountWorkInProgressHook();
+  // 客户端生成：使用全局计数器保证同一页面内唯一，格式与源码 '_r_N_' 对齐
+  const id = '_r_' + globalClientIdCounter++ + '_';
+  hook.memoizedState = id;
+  return id;
+}
+
+// 对应源码: ReactFiberHooks.js → updateId
+function updateId(): string {
+  const hook = updateWorkInProgressHook();
+  // ID 在 mount 后保持稳定，直接返回存储值
+  return hook.memoizedState as string;
+}
+
