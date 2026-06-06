@@ -708,6 +708,44 @@ function updateMemo<T>(create: () => T, deps?: any[]): T {
   return nextValue;
 }
 
+// --- useCallback ---
+
+/**
+ * 缓存函数引用，deps 不变时返回同一个函数对象，避免触发子组件不必要的重渲染
+ * 对应源码: ReactFiberHooks.js → mountCallback / updateCallback
+ *
+ * 与 useMemo 的唯一区别：直接存储 callback 本身（不调用），useMemo 存储 create() 的返回值
+ */
+export function useCallback<T extends Function>(callback: T, deps?: any[]): T {
+  if (isMount) {
+    return mountCallback(callback, deps);
+  }
+  return updateCallback(callback, deps);
+}
+
+// 对应源码: ReactFiberHooks.js → mountCallback
+function mountCallback<T extends Function>(callback: T, deps?: any[]): T {
+  const hook = mountWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  hook.memoizedState = [callback, nextDeps];
+  return callback;
+}
+
+// 对应源码: ReactFiberHooks.js → updateCallback
+function updateCallback<T extends Function>(callback: T, deps?: any[]): T {
+  const hook = updateWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  const prevState = hook.memoizedState as [T, any[] | null];
+  if (nextDeps !== null) {
+    const prevDeps = prevState[1];
+    if (areHookInputsEqual(nextDeps, prevDeps)) {
+      return prevState[0];
+    }
+  }
+  hook.memoizedState = [callback, nextDeps];
+  return callback;
+}
+
 // --- useContext ---
 
 /**

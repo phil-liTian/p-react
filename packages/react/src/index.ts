@@ -5,4 +5,4 @@
 export { createElement } from './createElement';
 export { createContext } from './createContext';
 export type { ReactContext } from './createContext';
-export { useEffect, useState, useReducer, useContext, useLayoutEffect, useInsertionEffect, useRef, useImperativeHandle, useMemo } from '@p-react/react-reconciler';
+export { useEffect, useState, useReducer, useContext, useLayoutEffect, useInsertionEffect, useRef, useImperativeHandle, useMemo, useCallback } from '@p-react/react-reconciler';

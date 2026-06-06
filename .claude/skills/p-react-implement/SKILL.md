@@ -11,7 +11,7 @@ description: Use when implementing a new file or function in packages/ of the p-
 1. 对照 `source/packages/` 源码确认函数名和注释
 2. 在 `packages/` 中实现功能
 3. 在 `demo/` 中写演示代码验证功能
-4. 在 `hub/` 中添加实现细节内容
+4. 在 `demo/hub.html` 中添加实现原理 snippet 和 demo 条目
 
 ---
 
@@ -137,6 +137,45 @@ root.render(createElement(Counter, null));
 </body>
 ```
 
+### 6. 在 demo/hub.html 中添加实现原理
+
+**每个新 Hook 必须在 `demo/hub.html` 中补充两处内容：**
+
+**① snippet 代码块**——在 `<!-- highlight.js -->` 注释之前插入：
+
+```html
+<!-- ═══════════════════════════════════════════════════════
+     Snippet N · useXxx
+     Source: packages/react-reconciler/src/fiberHooks.ts
+═══════════════════════════════════════════════════════ -->
+<script type="text/plain" id="snippet-N">// packages/react-reconciler/src/fiberHooks.ts
+// 一句话描述这个 hook 的核心机制
+
+export function useXxx(...) { ... }
+
+// 对应源码: ReactFiberHooks.js → mountXxx
+function mountXxx(...) { ... }
+
+// 对应源码: ReactFiberHooks.js → updateXxx
+function updateXxx(...) { ... }
+</script>
+```
+
+- `N` 为递增数字（接续上一个 snippet 的编号）
+- 内容精简到关键路径，可加必要行内注释，但不做教学叙述
+
+**② demos 数组条目**——在 `demos` 数组末尾追加：
+
+```js
+{
+  id: 'N', name: 'useXxx', script: 'N_useXxx', group: '对应分组',
+  sourcePath: 'packages/react-reconciler/src/fiberHooks.ts',
+  snippetId: 'snippet-N',
+},
+```
+
+- `group` 取值参考已有条目：`'基础渲染'` / `'State'` / `'Effects'` / `'Context & Ref'` / `'性能优化'`
+
 ---
 
 ## 检查清单
@@ -150,6 +189,8 @@ root.render(createElement(Counter, null));
 - [ ] 已在 `demo/` 目录下新建对应演示文件, ts命名为递增的数字索引
 - [ ] 演示文件覆盖了 mount 和 update 两个阶段（如适用）
 - [ ] `demo/index.html` 已更新（新 demo 激活，旧 demo 注释）
+- [ ] `demo/hub.html` 已添加 `snippet-N` 代码块（关键实现路径）
+- [ ] `demo/hub.html` 的 `demos` 数组已追加对应条目（id / name / script / group / sourcePath / snippetId）
 
 ---
 
