@@ -40,8 +40,8 @@ packages/
   - [✅] `useMemo`、`useCallback`
   - [ ] `useId`、`useTransition`、`useDeferredValue`、`useSyncExternalStore`（React 18）
   - [ ] `useActionState`、`useFormStatus`、`useOptimistic`（React 19）
+- [ ] Lane 模型  任务的优先级（车道）
 - [ ] 调度器（Scheduler）
-- [ ] Lane 模型
 - [ ] 并发模式
 
 ### 内置组件待办

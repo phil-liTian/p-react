@@ -761,6 +761,53 @@ export function useContext<T>(context: ReactContext<T>): T {
   return context._currentValue;
 }
 
+// --- useTransition ---
+
+/**
+ * 标记低优先级的状态更新，返回 [isPending, startTransition]
+ * 对应源码: ReactFiberHooks.js → mountTransition / updateTransition
+ *
+ * 简化差异：源码通过 Lane 模型将 callback 内的更新标记为 TransitionLane，
+ * 从而在并发模式下可被中断/延迟。p-react 无 Lane / Scheduler，
+ * 仅用同步调度模拟效果：将 isPending 在 callback 前后置 true/false。
+ */
+export function useTransition(): [boolean, (callback: () => void) => void] {
+  if (isMount) {
+    return mountTransition();
+  }
+  return updateTransition();
+}
+
+// 对应源码: ReactFiberHooks.js → mountTransition
+function mountTransition(): [boolean, (callback: () => void) => void] {
+  // hook slot 1：isPending state
+  const [isPending, setPending] = mountState<boolean>(false);
+  // hook slot 2：存储 start 函数引用（引用不变）
+  const hook = mountWorkInProgressHook();
+  const start = startTransition.bind(null, setPending);
+  hook.memoizedState = start;
+  return [isPending, start];
+}
+
+// 对应源码: ReactFiberHooks.js → updateTransition
+function updateTransition(): [boolean, (callback: () => void) => void] {
+  const [isPending] = updateState<boolean>();
+  const hook = updateWorkInProgressHook();
+  const start = hook.memoizedState as (callback: () => void) => void;
+  return [isPending, start];
+}
+
+// 对应源码: ReactFiberHooks.js → startTransition
+// 源码在此处切换 Lane 优先级（TransitionLane），p-react 直接同步执行
+function startTransition(
+  setPending: (pending: boolean) => void,
+  callback: () => void
+): void {
+  setPending(true);
+  callback();
+  setPending(false);
+}
+
 // --- useId ---
 
 // 对应源码: ReactFiberHooks.js → globalClientIdCounter（全局递增计数器）

@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p-react · React 踩坑指南</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    :root {
+      --sidebar-w: 260px;
+      --bg-base: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-overlay: #1c2128;
+      --border: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(124, 58, 237, 0.15);
+      --red: #f85149;
+      --red-glow: rgba(248, 81, 73, 0.12);
+      --yellow: #d29922;
+      --yellow-glow: rgba(210, 153, 34, 0.12);
+      --green: #3fb950;
+      --green-glow: rgba(63, 185, 80, 0.12);
+      --blue: #58a6ff;
+      --blue-glow: rgba(88, 166, 255, 0.12);
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-base);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-hexagon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+
+    .logo-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--red);
+      background: var(--red-glow);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 12px 16px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+    }
+
+    .nav-item:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent-light);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 3px; bottom: 3px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-sev {
+      font-size: 10px;
+      font-family: var(--font-code);
+      color: var(--text-muted);
+      width: 18px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .nav-item.active .nav-sev { color: var(--accent-light); opacity: 0.7; }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .back-link:hover { color: var(--text-secondary); border-color: var(--text-secondary); background: var(--bg-overlay); }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-elevated);
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      height: 40px;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .content-header-icon { font-size: 12px; color: var(--text-muted); font-family: var(--font-code); }
+    .content-header-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .content-header-dot { color: var(--text-muted); font-size: 11px; }
+    .content-header-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .content-header-spacer { flex: 1; }
+
+    .content-header-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+    }
+
+    /* ── Article ── */
+    .article-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px 48px;
+    }
+
+    .article-wrapper::-webkit-scrollbar { width: 8px; }
+    .article-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .article-wrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+    .article-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    .pitfall { display: none; }
+    .pitfall.active { display: block; }
+
+    /* ── Pitfall card ── */
+    .pitfall-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .pitfall-icon {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .pitfall-meta { flex: 1; }
+
+    .pitfall-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .pitfall-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .tag-danger { color: var(--red); background: var(--red-glow); border: 1px solid rgba(248,81,73,0.25); }
+    .tag-warning { color: var(--yellow); background: var(--yellow-glow); border: 1px solid rgba(210,153,34,0.25); }
+    .tag-info { color: var(--blue); background: var(--blue-glow); border: 1px solid rgba(88,166,255,0.25); }
+    .tag-success { color: var(--green); background: var(--green-glow); border: 1px solid rgba(63,185,80,0.25); }
+
+    .pitfall-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+
+    /* ── Section blocks ── */
+    .section { margin-bottom: 28px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .section-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .section-body p { margin-bottom: 10px; }
+    .section-body p:last-child { margin-bottom: 0; }
+
+    .section-body strong { color: var(--text-primary); font-weight: 600; }
+
+    .section-body code {
+      font-family: var(--font-code);
+      font-size: 12px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--accent-light);
+    }
+
+    /* ── Code blocks ── */
+    .code-block-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .code-block-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: var(--bg-overlay);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-code);
+    }
+
+    .code-block-label-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-red { background: var(--red); }
+    .dot-green { background: var(--green); }
+    .dot-yellow { background: var(--yellow); }
+
+    .code-block-label-text { color: var(--text-secondary); }
+
+    .code-block-wrap pre { margin: 0; padding: 16px 18px; background: var(--bg-base) !important; }
+    .code-block-wrap code {
+      font-family: var(--font-code) !important;
+      font-size: 12px !important;
+      line-height: 1.7 !important;
+    }
+    .code-block-wrap .hljs { background: var(--bg-base) !important; }
+
+    /* ── Rule box ── */
+    .rule-box {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border-left: 3px solid;
+      font-size: 13.5px;
+      line-height: 1.7;
+    }
+
+    .rule-box-danger {
+      background: var(--red-glow);
+      border-color: var(--red);
+      color: #ffa8a8;
+    }
+
+    .rule-box-warning {
+      background: var(--yellow-glow);
+      border-color: var(--yellow);
+      color: #f0c070;
+    }
+
+    .rule-box-info {
+      background: var(--blue-glow);
+      border-color: var(--blue);
+      color: #a0c8ff;
+    }
+
+    .rule-box-success {
+      background: var(--green-glow);
+      border-color: var(--green);
+      color: #90dca0;
+    }
+
+    .rule-box strong { color: inherit; font-weight: 700; }
+    .rule-box code {
+      font-family: var(--font-code);
+      font-size: 11.5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    /* ── Step list ── */
+    .step-list { list-style: none; }
+
+    .step-list li {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .step-list li:last-child { border-bottom: none; }
+
+    .step-num {
+      font-family: var(--font-code);
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 20px;
+      flex-shrink: 0;
+      padding-top: 3px;
+    }
+
+    /* ── Mobile ── */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .menu-toggle:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 99;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    @media (max-width: 700px) {
+      body { overflow: hidden; }
+      .menu-toggle { display: flex; }
+      .app { flex-direction: column; }
+
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 260px;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        height: 48px;
+        background: var(--bg-base);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .mobile-topbar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .content { height: calc(100vh - 48px); }
+      .article-wrapper { padding: 20px 16px 40px; }
+      .nav-item { padding: 11px 16px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app">
+  <!-- Mobile Topbar -->
+  <div class="mobile-topbar" id="mobile-topbar" style="display:none">
+    <button class="menu-toggle" id="menu-toggle-top" aria-label="打开菜单">☰</button>
+    <span class="mobile-topbar-title" id="mobile-topbar-title">踩坑指南</span>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-el">
+    <div class="sidebar-logo">
+      <div class="logo-hexagon">p</div>
+      <span class="logo-text">p-react</span>
+      <span class="logo-badge">pitfalls</span>
+      <div style="flex:1"></div>
+      <button class="menu-toggle" id="sidebar-close" aria-label="关闭菜单" style="display:none">✕</button>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <a class="back-link" href="hub.html">← 返回 Hub</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="content-header">
+      <span class="content-header-icon">⚠</span>
+      <span class="content-header-label">踩坑指南</span>
+      <span class="content-header-dot">·</span>
+      <span class="content-header-name" id="content-header-name">选择左侧条目</span>
+      <div class="content-header-spacer"></div>
+      <span class="content-header-badge" id="content-header-badge"></span>
+    </div>
+
+    <div class="article-wrapper" id="article-wrapper">
+      <!-- pitfall articles injected here -->
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+// ── Pitfall data ──────────────────────────────────────────────────────
+const pitfalls = [
+  {
+    id: 'stale-closure',
+    name: 'useEffect 闭包陷阱',
+    group: 'Hooks 陷阱',
+    severity: 'danger',
+    icon: '🪤',
+    tags: [{ label: '高频', type: 'danger' }, { label: 'useEffect', type: 'info' }, { label: 'closure', type: 'info' }],
+    summary: 'useEffect 的回调在 mount 时闭包捕获了当时的 state/props 值，后续 state 更新不会自动更新回调内部的引用。',
+    wrongLabel: '❌ 错误 — count 永远是 0',
+    wrongCode: `function Timer() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      // 闭包捕获了 mount 时的 count = 0
+      // 每次打印的都是 0，而不是最新值
+      console.log(count);
+      setCount(count + 1); // 始终是 0 + 1 = 1
+    }, 1000);
+    return () => clearInterval(id);
+  }, []); // 空 deps，回调永不更新
+
+  return <div>{count}</div>;
+}`,
+    rightLabel: '✅ 正确 — 用函数式更新或把 count 加入 deps',
+    rightCode: `function Timer() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      // 函数式更新：React 传入最新 state，无需依赖 count
+      setCount(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []); // deps 为空也安全
+
+  return <div>{count}</div>;
+}`,
+    rules: [
+      { type: 'warning', text: '把 state 加入 deps 也能修复，但会重建 interval。优先用<strong>函数式更新</strong>（<code>prev =&gt; prev + 1</code>）避免不必要的 effect 重跑。' },
+      { type: 'info', text: '用 <code>useRef</code> 保存最新回调也是常见方案（<code>useEvent</code> 模式），适合回调本身不需要触发重渲染的场景。' },
+    ],
+  },
+
+  {
+    id: 'deps-object',
+    name: 'deps 传引用类型',
+    group: 'Hooks 陷阱',
+    severity: 'danger',
+    icon: '♻️',
+    tags: [{ label: '高频', type: 'danger' }, { label: 'useEffect', type: 'info' }, { label: 'useMemo', type: 'info' }],
+    summary: 'deps 数组通过 Object.is 做浅比较。每次渲染新建的对象/数组/函数引用不同，会导致 effect 或 memo 在每次渲染时都重新执行。',
+    wrongLabel: '❌ 错误 — 每次渲染都重新 fetch',
+    wrongCode: `function UserProfile({ userId }) {
+  // 每次渲染都创建新对象，引用不同
+  const options = { method: 'GET', headers: { 'X-Id': userId } };
+
+  useEffect(() => {
+    fetch('/api/user', options).then(/* ... */);
+  }, [options]); // options 引用每次都变 → effect 每次都跑
+}`,
+    rightLabel: '✅ 正确 — 只依赖原始值，或用 useMemo 稳定引用',
+    rightCode: `function UserProfile({ userId }) {
+  // 方案一：只把真正影响结果的原始值放入 deps
+  useEffect(() => {
+    fetch(\`/api/user?id=\${userId}\`).then(/* ... */);
+  }, [userId]);
+
+  // 方案二：用 useMemo 稳定对象引用
+  const options = useMemo(
+    () => ({ method: 'GET', headers: { 'X-Id': userId } }),
+    [userId]
+  );
+  useEffect(() => {
+    fetch('/api/user', options).then(/* ... */);
+  }, [options]); // options 只在 userId 变化时才变
+}`,
+    rules: [
+      { type: 'warning', text: '函数同理：props 传入的回调若未用 <code>useCallback</code> 包裹，每次渲染都是新引用，会引发子组件不必要的重渲染或 effect 重跑。' },
+    ],
+  },
+
+  {
+    id: 'missing-deps',
+    name: '漏写 deps（ESLint 误判）',
+    group: 'Hooks 陷阱',
+    severity: 'warning',
+    icon: '🔇',
+    tags: [{ label: '常见', type: 'warning' }, { label: 'useEffect', type: 'info' }, { label: 'exhaustive-deps', type: 'info' }],
+    summary: '手动维护 deps 容易遗漏，且与闭包的实际依赖不一致。eslint-plugin-react-hooks 的 exhaustive-deps 规则是最可靠的守门人。',
+    wrongLabel: '❌ 错误 — 漏写 userId，切换用户时数据不刷新',
+    wrongCode: `useEffect(() => {
+  fetchProfile(userId).then(setProfile);
+}, []); // userId 变化时 effect 不会重跑`,
+    rightLabel: '✅ 正确 — 把所有用到的变量写入 deps',
+    rightCode: `useEffect(() => {
+  fetchProfile(userId).then(setProfile);
+}, [userId]); // userId 变化 → effect 重跑 → 拉取新数据`,
+    rules: [
+      { type: 'info', text: '安装 <code>eslint-plugin-react-hooks</code> 并开启 <code>"react-hooks/exhaustive-deps": "warn"</code>，让工具替你检查。' },
+      { type: 'warning', text: '用 <code>// eslint-disable-next-line</code> 绕过规则之前，先确认是否可以用函数式更新或 <code>useRef</code> 解决。' },
+    ],
+  },
+
+  {
+    id: 'state-batch',
+    name: '误解 state 批处理',
+    group: 'State 陷阱',
+    severity: 'warning',
+    icon: '🎯',
+    tags: [{ label: '常见', type: 'warning' }, { label: 'useState', type: 'info' }, { label: 'batching', type: 'info' }],
+    summary: 'React 18 起所有更新（包括 setTimeout、Promise 内）都默认批处理，多次 setState 只触发一次重渲染。React 17 及之前仅在事件处理器内批处理。',
+    wrongLabel: '❌ 误以为会触发两次渲染',
+    wrongCode: `function Counter() {
+  const [a, setA] = useState(0);
+  const [b, setB] = useState(0);
+
+  function handleClick() {
+    setA(1); // React 18: 不立即渲染
+    setB(2); // 两次更新合并，只渲染一次
+  }
+}`,
+    rightLabel: '✅ 理解批处理，用 flushSync 强制同步渲染（少用）',
+    rightCode: `import { flushSync } from 'react-dom';
+
+function handleClick() {
+  // 极少数场景需要立即读取 DOM
+  flushSync(() => setA(1)); // 同步渲染
+  flushSync(() => setB(2)); // 再次同步渲染
+  // 通常不需要，了解即可
+}`,
+    rules: [
+      { type: 'info', text: 'React 18 的自动批处理意味着 <code>setA(1); setB(2);</code> 只触发一次渲染，性能更好，但依赖"每次 setState 立即渲染"的代码会出错。' },
+      { type: 'warning', text: '若需要在 setState 后同步读取更新后的 DOM，用 <code>flushSync</code>；若只是要读取 state，用 <code>useEffect</code> + deps。' },
+    ],
+  },
+
+  {
+    id: 'state-immutable',
+    name: '直接修改 state（可变操作）',
+    group: 'State 陷阱',
+    severity: 'danger',
+    icon: '✏️',
+    tags: [{ label: '高频', type: 'danger' }, { label: 'useState', type: 'info' }, { label: 'immutable', type: 'info' }],
+    summary: 'React 通过 Object.is 比较前后 state。直接 mutate 对象/数组后再 setState，引用未变，React 认为没有变化，跳过渲染。',
+    wrongLabel: '❌ 错误 — 直接 push，UI 不更新',
+    wrongCode: `const [list, setList] = useState([1, 2, 3]);
+
+function addItem() {
+  list.push(4);    // 直接修改原数组
+  setList(list);   // 引用不变，React 跳过渲染
+}`,
+    rightLabel: '✅ 正确 — 始终创建新引用',
+    rightCode: `const [list, setList] = useState([1, 2, 3]);
+
+// 方案一：展开新数组
+function addItem() {
+  setList([...list, 4]);
+}
+
+// 方案二：用函数式更新（推荐，避免闭包陷阱）
+function addItem() {
+  setList(prev => [...prev, 4]);
+}
+
+// 复杂对象嵌套更新 → 可考虑 immer
+import produce from 'immer';
+setList(produce(draft => { draft.push(4); }));`,
+    rules: [
+      { type: 'danger', text: '对象同理：<code>obj.name = "new"</code> 后 setObj(obj)，React 不会重渲染。必须 <code>setObj({...obj, name: "new"})</code>。' },
+      { type: 'info', text: '深层嵌套对象的 immutable 更新很繁琐，推荐引入 <strong>immer</strong>：<code>produce(draft =&gt; { draft.a.b = 1 })</code>。' },
+    ],
+  },
+
+  {
+    id: 'key-anti-pattern',
+    name: 'key 使用不当',
+    group: 'State 陷阱',
+    severity: 'warning',
+    icon: '🔑',
+    tags: [{ label: '常见', type: 'warning' }, { label: 'key', type: 'info' }, { label: 'reconciler', type: 'info' }],
+    summary: 'key 是 React Diff 算法的标识符，错用会导致组件复用/销毁行为异常：index 作 key 在列表排序/插入时会保留旧 state，随机 key 每次都强制重建。',
+    wrongLabel: '❌ 错误 — 用 index 作 key，拖拽排序后 state 错位',
+    wrongCode: `// 初始：[A, B, C]，A 有输入框 state = "hello"
+// 删除 A 后变 [B, C]，B 的 index = 0
+// React 以为 key=0 的组件还是原来那个，B 显示 "hello"
+items.map((item, index) => (
+  <ListItem key={index} item={item} />
+))`,
+    rightLabel: '✅ 正确 — 用业务唯一 ID 作 key',
+    rightCode: `// 用数据唯一标识，Diff 能精确识别哪个组件被移动/删除
+items.map(item => (
+  <ListItem key={item.id} item={item} />
+))
+
+// 高级用法：用 key 强制重置组件 state（代替 useEffect 清理）
+<UserProfile key={userId} userId={userId} />
+// userId 变化时 key 变 → 旧组件卸载 + 新组件挂载 → state 自动清零`,
+    rules: [
+      { type: 'warning', text: '不可变静态列表用 index 作 key 无害，但一旦列表会排序、过滤、插入，必须换成稳定 ID。' },
+      { type: 'success', text: '反向利用：给组件传一个变化的 key 可以优雅地"重置"组件内部 state，比在 useEffect 里手动清理更简洁。' },
+    ],
+  },
+
+  {
+    id: 'render-in-render',
+    name: '渲染阶段的副作用',
+    group: 'State 陷阱',
+    severity: 'danger',
+    icon: '💥',
+    tags: [{ label: '严重', type: 'danger' }, { label: 'render', type: 'info' }, { label: 'StrictMode', type: 'info' }],
+    summary: '函数组件的 render 函数必须是纯函数（给定相同 props/state 输出相同 JSX）。在渲染阶段修改外部状态、直接调用 setState、或执行异步操作会导致并发模式下行为不可预期。',
+    wrongLabel: '❌ 错误 — 渲染时直接 setState 导致无限循环',
+    wrongCode: `function BadComponent({ count }) {
+  const [doubled, setDoubled] = useState(0);
+
+  // ❌ 渲染阶段调用 setState → 触发再次渲染 → 无限循环
+  setDoubled(count * 2);
+
+  return <div>{doubled}</div>;
+}`,
+    rightLabel: '✅ 正确 — 派生 state 直接计算，无需 useState',
+    rightCode: `function GoodComponent({ count }) {
+  // 直接在渲染时计算派生值，不需要额外 state
+  const doubled = count * 2;
+  return <div>{doubled}</div>;
+}
+
+// 若计算昂贵，用 useMemo 缓存
+function ExpensiveComponent({ data }) {
+  const result = useMemo(() => heavyCalc(data), [data]);
+  return <div>{result}</div>;
+}`,
+    rules: [
+      { type: 'info', text: 'React StrictMode 在开发环境下会<strong>故意调用 render 两次</strong>来暴露副作用。如果看到意外的双次打印，这是设计行为，不是 bug。' },
+      { type: 'danger', text: '在 render 中调用 <code>fetch</code>、修改 DOM、写 localStorage 等副作用同样危险。所有副作用应放在 <code>useEffect</code> 中。' },
+    ],
+  },
+
+  {
+    id: 'context-perf',
+    name: 'Context 滥用导致全局重渲',
+    group: '性能陷阱',
+    severity: 'warning',
+    icon: '📡',
+    tags: [{ label: '性能', type: 'warning' }, { label: 'useContext', type: 'info' }, { label: 'memo', type: 'info' }],
+    summary: 'Context value 变化时，所有订阅该 Context 的组件都会重渲染，即使它们只用到了 value 中的一个字段。大型应用滥用单一 Context 会引发性能问题。',
+    wrongLabel: '❌ 错误 — 把所有全局状态塞进一个 Context',
+    wrongCode: `// 一个 Context 装所有状态
+const AppContext = createContext();
+
+function AppProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState('light');
+  const [cart, setCart] = useState([]);
+
+  // cart 变化 → value 对象引用变化 → 所有订阅组件重渲染
+  // 包括只关心 theme 的组件！
+  return (
+    <AppContext.Provider value={{ user, setUser, theme, setTheme, cart, setCart }}>
+      {children}
+    </AppContext.Provider>
+  );
+}`,
+    rightLabel: '✅ 正确 — 按关注点拆分 Context，或用 memo 阻断',
+    rightCode: `// 方案一：按领域拆分 Context
+const UserContext = createContext();
+const ThemeContext = createContext();
+const CartContext = createContext();
+
+// 方案二：读写分离（value 稳定，setter 不触发重渲染）
+const ThemeContext = createContext();
+const ThemeSetterContext = createContext();
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  return (
+    <ThemeSetterContext.Provider value={setTheme}>
+      <ThemeContext.Provider value={theme}>
+        {children}
+      </ThemeContext.Provider>
+    </ThemeSetterContext.Provider>
+  );
+}
+
+// 方案三：用 memo 包裹不关心 context 的子组件
+const HeavyChild = memo(function HeavyChild() {
+  // 即使父 context 变化，只要 props 不变就不重渲染
+  return <div>...</div>;
+});`,
+    rules: [
+      { type: 'info', text: 'Context 适合低频变化的全局数据（主题、语言、登录用户）。高频变化的状态（购物车、表单）考虑用 Zustand / Jotai 等状态管理库。' },
+    ],
+  },
+
+  {
+    id: 'memo-overuse',
+    name: 'memo / useMemo / useCallback 滥用',
+    group: '性能陷阱',
+    severity: 'warning',
+    icon: '🧊',
+    tags: [{ label: '性能', type: 'warning' }, { label: 'memo', type: 'info' }, { label: 'useMemo', type: 'info' }],
+    summary: 'memo 缓存本身有开销（比较 props），对于渲染廉价的简单组件反而更慢。只在确认存在性能问题后再优化。',
+    wrongLabel: '❌ 错误 — 对所有组件都加 memo',
+    wrongCode: `// 渲染只有一行文字的组件加 memo
+const Label = memo(({ text }) => <span>{text}</span>);
+// memo 的比较开销 > 直接渲染的开销，纯粹负优化
+
+// useMemo 包裹简单计算
+const value = useMemo(() => a + b, [a, b]);
+// 加法不需要 memo，反而多了存储 deps 的内存开销`,
+    rightLabel: '✅ 正确 — 只在有明确性能瓶颈时使用',
+    rightCode: `// 适合 memo 的场景：
+// 1. 渲染代价高（复杂 DOM 树、大型列表项）
+// 2. 父组件频繁重渲染但 props 几乎不变
+
+const HeavyChart = memo(function HeavyChart({ data }) {
+  // 渲染耗时较长，且 data 引用稳定时不应重渲染
+  return <canvas>{/* 复杂绘制逻辑 */}</canvas>;
+});
+
+// 适合 useMemo 的场景：
+// 1. 计算本身耗时（大量数组过滤/排序）
+// 2. 需要稳定引用传给 memo 子组件或作 useEffect deps
+
+const sortedList = useMemo(
+  () => hugeList.filter(x => x.active).sort(compareFn),
+  [hugeList]
+);`,
+    rules: [
+      { type: 'success', text: '先用 React DevTools Profiler 找到真正的瓶颈，再针对性地加 memo/useMemo，而不是防御性地给所有组件加。' },
+      { type: 'info', text: 'React 19 编译器（React Compiler）会自动完成大部分 memo 优化，未来手写 memo 的场景会更少。' },
+    ],
+  },
+
+  {
+    id: 'async-setState',
+    name: '异步操作后 setState 内存泄漏',
+    group: '生命周期陷阱',
+    severity: 'warning',
+    icon: '💧',
+    tags: [{ label: '常见', type: 'warning' }, { label: 'useEffect', type: 'info' }, { label: 'cleanup', type: 'info' }],
+    summary: '组件卸载后，仍在 pending 的异步回调（fetch、setTimeout）如果执行 setState 会产生"在已卸载组件上 setState"的警告，可能引发内存泄漏。',
+    wrongLabel: '❌ 错误 — 组件卸载后仍然 setState',
+    wrongCode: `function UserCard({ userId }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch(\`/api/users/\${userId}\`)
+      .then(r => r.json())
+      .then(data => {
+        // 如果 fetch 期间组件已卸载，这里仍然执行
+        setUser(data); // Warning: Can't perform state update on unmounted component
+      });
+  }, [userId]);
+}`,
+    rightLabel: '✅ 正确 — 用 AbortController 或忽略标志取消',
+    rightCode: `function UserCard({ userId }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(\`/api/users/\${userId}\`, { signal: controller.signal })
+      .then(r => r.json())
+      .then(data => setUser(data))
+      .catch(err => {
+        if (err.name !== 'AbortError') throw err; // 忽略取消错误
+      });
+
+    // cleanup：组件卸载或 userId 变化时取消请求
+    return () => controller.abort();
+  }, [userId]);
+}`,
+    rules: [
+      { type: 'info', text: '使用 React Query / SWR 等数据请求库时，这个问题由库内部处理，无需手动管理。' },
+      { type: 'warning', text: '对于 <code>setTimeout</code>，cleanup 函数中执行 <code>clearTimeout(id)</code>；对于订阅（WebSocket、EventEmitter），cleanup 中取消订阅。' },
+    ],
+  },
+
+  {
+    id: 'conditional-hooks',
+    name: 'Hook 在条件/循环中调用',
+    group: '生命周期陷阱',
+    severity: 'danger',
+    icon: '⛔',
+    tags: [{ label: '严重', type: 'danger' }, { label: 'rules-of-hooks', type: 'info' }],
+    summary: 'React 依靠 Hook 调用顺序来对应 fiber 中的 hook 链表节点。条件分支或循环中调用 Hook 会打乱顺序，导致 state 对应错乱，引发难以排查的 bug。',
+    wrongLabel: '❌ 错误 — 在条件内调用 Hook',
+    wrongCode: `function BadForm({ isLoggedIn }) {
+  if (isLoggedIn) {
+    // ❌ 条件成立时 Hook 数量 +1，React 链表对不上
+    const [name, setName] = useState('');
+  }
+
+  const [email, setEmail] = useState('');
+  // isLoggedIn 变化时，email 的 hook slot 会错位到 name 的位置
+}`,
+    rightLabel: '✅ 正确 — Hook 始终在顶层调用，条件放内部',
+    rightCode: `function GoodForm({ isLoggedIn }) {
+  // Hook 顺序固定，不受条件影响
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  // 条件逻辑放在 Hook 调用之后
+  if (!isLoggedIn) return null;
+
+  return <form>...</form>;
+}`,
+    rules: [
+      { type: 'danger', text: '循环中调用 Hook 同理（<code>for</code> 循环次数可能变化）。将需要在循环中使用的逻辑提取成子组件。' },
+      { type: 'info', text: 'eslint-plugin-react-hooks 的 <code>rules-of-hooks</code> 规则会在编译阶段检测这类问题，务必开启。' },
+    ],
+  },
+];
+
+// ── Build sidebar nav ──────────────────────────────────────────────────
+const sidebarNav = document.getElementById('sidebar-nav');
+const groups = [...new Set(pitfalls.map(p => p.group))];
+
+const sevIcon = { danger: '🔴', warning: '🟡', info: '🔵' };
+
+groups.forEach(group => {
+  const groupEl = document.createElement('div');
+  groupEl.className = 'nav-group';
+
+  const label = document.createElement('div');
+  label.className = 'nav-group-label';
+  label.textContent = group;
+  groupEl.appendChild(label);
+
+  pitfalls.filter(p => p.group === group).forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'nav-item';
+    item.dataset.id = p.id;
+    item.innerHTML = `<span class="nav-sev">${sevIcon[p.severity] || ''}</span>${p.name}`;
+    item.addEventListener('click', () => selectPitfall(p.id));
+    groupEl.appendChild(item);
+  });
+
+  sidebarNav.appendChild(groupEl);
+});
+
+// ── Render article ─────────────────────────────────────────────────────
+function renderPitfall(p) {
+  const el = document.createElement('div');
+  el.className = 'pitfall';
+  el.id = 'pitfall-' + p.id;
+
+  const tagsHtml = p.tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('');
+  const rulesHtml = p.rules.map(r =>
+    `<div class="rule-box rule-box-${r.type}">${r.text}</div>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="pitfall-header">
+      <div class="pitfall-icon">${p.icon}</div>
+      <div class="pitfall-meta">
+        <div class="pitfall-title">${p.name}</div>
+        <div class="pitfall-tags">${tagsHtml}</div>
+      </div>
+    </div>
+    <div class="pitfall-divider"></div>
+
+    <div class="section">
+      <div class="section-title">问题描述</div>
+      <div class="section-body"><p>${p.summary}</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">代码对比</div>
+      <div class="code-block-wrap">
+        <div class="code-block-label">
+          <span class="code-block-label-dot dot-red"></span>
+          <span class="code-block-label-text">${p.wrongLabel}</span>
+        </div>
+        <pre><code class="language-jsx" id="code-wrong-${p.id}">${escHtml(p.wrongCode)}</code></pre>
+      </div>
+      <div class="code-block-wrap">
+        <div class="code-block-label">
+          <span class="code-block-label-dot dot-green"></span>
+          <span class="code-block-label-text">${p.rightLabel}</span>
+        </div>
+        <pre><code class="language-jsx" id="code-right-${p.id}">${escHtml(p.rightCode)}</code></pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">注意事项</div>
+      ${rulesHtml}
+    </div>
+  `;
+
+  document.getElementById('article-wrapper').appendChild(el);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+pitfalls.forEach(renderPitfall);
+
+// highlight all blocks
+document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+// ── Select pitfall ─────────────────────────────────────────────────────
+function selectPitfall(id) {
+  const p = pitfalls.find(x => x.id === id);
+  if (!p) return;
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+
+  document.querySelectorAll('.pitfall').forEach(el => {
+    el.classList.toggle('active', el.id === 'pitfall-' + id);
+  });
+
+  document.getElementById('content-header-name').textContent = p.name;
+
+  const badgeMap = { danger: '⚠ 高危', warning: '注意', info: '提示' };
+  const badge = document.getElementById('content-header-badge');
+  badge.textContent = badgeMap[p.severity] || '';
+  badge.style.color = p.severity === 'danger' ? 'var(--red)' : p.severity === 'warning' ? 'var(--yellow)' : 'var(--blue)';
+  badge.style.borderColor = badge.style.color;
+
+  document.getElementById('article-wrapper').scrollTop = 0;
+  document.getElementById('mobile-topbar-title').textContent = p.name;
+  closeSidebar();
+}
+
+// ── Mobile sidebar ─────────────────────────────────────────────────────
+const sidebarEl = document.getElementById('sidebar-el');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const mobileTopbar = document.getElementById('mobile-topbar');
+const menuToggleTop = document.getElementById('menu-toggle-top');
+const sidebarClose = document.getElementById('sidebar-close');
+const mq = window.matchMedia('(max-width: 700px)');
+
+function openSidebar() { sidebarEl.classList.add('open'); sidebarOverlay.classList.add('visible'); }
+function closeSidebar() { sidebarEl.classList.remove('open'); sidebarOverlay.classList.remove('visible'); }
+
+menuToggleTop.addEventListener('click', openSidebar);
+sidebarClose.addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+function applyMobileLayout(isMobile) {
+  mobileTopbar.style.display = isMobile ? 'flex' : 'none';
+  sidebarClose.style.display = isMobile ? 'flex' : 'none';
+  if (!isMobile) closeSidebar();
+}
+
+mq.addEventListener('change', e => applyMobileLayout(e.matches));
+applyMobileLayout(mq.matches);
+
+// ── Init: select first pitfall ─────────────────────────────────────────
+selectPitfall(pitfalls[0].id);
+</script>
+</body>
+</html>
