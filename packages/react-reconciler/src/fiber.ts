@@ -1,5 +1,5 @@
 import type { Key, Ref, Props, ReactElement } from '@p-react/shared';
-import { type WorkTag, type Flags, NoFlags } from '@p-react/shared';
+import { type WorkTag, type Flags, NoFlags, type Lane, type Lanes, NoLanes } from '@p-react/shared';
 
 export class FiberNode {
   /** 节点类型标识，如 HostRoot、HostComponent、FunctionComponent、HostText 等 */
@@ -32,6 +32,12 @@ export class FiberNode {
   /** effect 环形链表，useEffect/useLayoutEffect 产生的 effect 挂载在此 */
   updateQueue: any = null;
 
+  // ---- 优先级 ----
+  /** 当前节点本次更新所属的 Lane，由 scheduleUpdateOnFiber 写入 */
+  lanes: Lane = NoLanes;
+  /** 子树中所有 fiber.lanes 的聚合，markUpdateFromFiberToRoot 沿路向上累加 */
+  childLanes: Lanes = NoLanes;
+
   // ---- 双缓冲 ----
   /** 指向另一棵树中对应的 Fiber 节点：current.alternate = wip，wip.alternate = current */
   alternate: FiberNode | null = null;
@@ -60,6 +66,12 @@ export class FiberRootNode {
   current: FiberNode;
   /** 渲染阶段完成后待提交的 wip 树根节点，commitRoot 消费后置空 */
   finishedWork: FiberNode | null = null;
+
+  // ---- Lane 优先级 ----
+  /** 所有尚未完成的更新 Lane 集合，scheduleUpdateOnFiber 写入，markRootFinished 清理 */
+  pendingLanes: Lanes = NoLanes;
+  /** 本次已完成渲染的 Lane，commit 后用于从 pendingLanes 中移除 */
+  finishedLanes: Lanes = NoLanes;
 
   constructor(container: any, hostRootFiber: FiberNode) {
     this.container = container;

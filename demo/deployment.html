@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p-react · 服务器部署指南</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sidebar-w: 260px;
+      --bg-base: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-overlay: #1c2128;
+      --border: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(124, 58, 237, 0.15);
+      --green: #3fb950;
+      --green-glow: rgba(63, 185, 80, 0.12);
+      --blue: #58a6ff;
+      --blue-glow: rgba(88, 166, 255, 0.12);
+      --orange: #f0883e;
+      --orange-glow: rgba(240, 136, 62, 0.12);
+      --yellow: #d29922;
+      --yellow-glow: rgba(210, 153, 34, 0.12);
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-base);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-hexagon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+
+    .logo-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 12px 16px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+    }
+
+    .nav-item:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent-light);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 3px; bottom: 3px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-icon {
+      font-size: 14px;
+      width: 18px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .back-link:hover { color: var(--text-secondary); border-color: var(--text-secondary); background: var(--bg-overlay); }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-elevated);
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      height: 40px;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .content-header-icon { font-size: 12px; color: var(--text-muted); font-family: var(--font-code); }
+    .content-header-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .content-header-dot { color: var(--text-muted); font-size: 11px; }
+    .content-header-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .content-header-spacer { flex: 1; }
+
+    .content-header-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+    }
+
+    /* ── Article ── */
+    .article-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px 48px;
+    }
+
+    .article-wrapper::-webkit-scrollbar { width: 8px; }
+    .article-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .article-wrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+    .article-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .page-icon {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .page-meta { flex: 1; }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .page-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .tag-info { color: var(--blue); background: var(--blue-glow); border: 1px solid rgba(88,166,255,0.25); }
+    .tag-success { color: var(--green); background: var(--green-glow); border: 1px solid rgba(63,185,80,0.25); }
+    .tag-warning { color: var(--yellow); background: var(--yellow-glow); border: 1px solid rgba(210,153,34,0.25); }
+    .tag-orange { color: var(--orange); background: var(--orange-glow); border: 1px solid rgba(240,136,62,0.25); }
+
+    .page-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 28px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .section-body p { margin-bottom: 10px; }
+    .section-body p:last-child { margin-bottom: 0; }
+    .section-body strong { color: var(--text-primary); font-weight: 600; }
+
+    .section-body code {
+      font-family: var(--font-code);
+      font-size: 12px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--accent-light);
+    }
+
+    /* ── Sub-section ── */
+    .sub-section { margin-bottom: 20px; }
+
+    .sub-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-light);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Code blocks ── */
+    .code-block-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .code-block-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: var(--bg-overlay);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-code);
+    }
+
+    .code-block-label-text { color: var(--text-secondary); }
+
+    .code-block-wrap pre {
+      margin: 0;
+      padding: 16px 18px;
+      background: var(--bg-base) !important;
+      overflow-x: auto;
+    }
+
+    .code-block-wrap pre code {
+      font-family: var(--font-code) !important;
+      font-size: 12px !important;
+      line-height: 1.7 !important;
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+      color: var(--text-primary);
+    }
+
+    .code-block-wrap pre .cm { color: var(--text-muted); }
+    .code-block-wrap pre .kw { color: var(--accent-light); }
+    .code-block-wrap pre .st { color: var(--green); }
+    .code-block-wrap pre .cmd { color: var(--orange); }
+
+    /* ── Info / Warning boxes ── */
+    .rule-box {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border-left: 3px solid;
+      font-size: 13.5px;
+      line-height: 1.7;
+    }
+
+    .rule-box-info { background: var(--blue-glow); border-color: var(--blue); color: #a0c8ff; }
+    .rule-box-warning { background: var(--yellow-glow); border-color: var(--yellow); color: #f0c070; }
+    .rule-box-success { background: var(--green-glow); border-color: var(--green); color: #90dca0; }
+    .rule-box-orange { background: var(--orange-glow); border-color: var(--orange); color: #f8c090; }
+
+    .rule-box strong { color: inherit; font-weight: 700; }
+    .rule-box code {
+      font-family: var(--font-code);
+      font-size: 11.5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    /* ── Step list ── */
+    .step-list { list-style: none; }
+
+    .step-list li {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .step-list li:last-child { border-bottom: none; }
+
+    .step-num {
+      font-family: var(--font-code);
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 20px;
+      flex-shrink: 0;
+      padding-top: 3px;
+    }
+
+    /* ── Mobile ── */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .menu-toggle:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 99;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    @media (max-width: 700px) {
+      body { overflow: hidden; }
+      .menu-toggle { display: flex; }
+      .app { flex-direction: column; }
+
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 260px;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        height: 48px;
+        background: var(--bg-base);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .mobile-topbar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .content { height: calc(100vh - 48px); }
+      .article-wrapper { padding: 20px 16px 40px; }
+      .nav-item { padding: 11px 16px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app">
+  <!-- Mobile Topbar -->
+  <div class="mobile-topbar" id="mobile-topbar" style="display:none">
+    <button class="menu-toggle" id="menu-toggle-top" aria-label="打开菜单">☰</button>
+    <span class="mobile-topbar-title" id="mobile-topbar-title">部署指南</span>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-el">
+    <div class="sidebar-logo">
+      <div class="logo-hexagon">p</div>
+      <span class="logo-text">p-react</span>
+      <span class="logo-badge">deploy</span>
+      <div style="flex:1"></div>
+      <button class="menu-toggle" id="sidebar-close" aria-label="关闭菜单" style="display:none">✕</button>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <a class="back-link" href="hub.html">← 返回 Hub</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="content-header">
+      <span class="content-header-icon">🚀</span>
+      <span class="content-header-label">部署指南</span>
+      <span class="content-header-dot">·</span>
+      <span class="content-header-name" id="content-header-name">选择左侧条目</span>
+      <div class="content-header-spacer"></div>
+      <span class="content-header-badge" id="content-header-badge"></span>
+    </div>
+
+    <div class="article-wrapper" id="article-wrapper">
+      <!-- pages injected here -->
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Page data ──────────────────────────────────────────────────────────
+const pages = [
+  {
+    id: 'node-pm2',
+    name: 'Node.js + PM2',
+    group: '部署',
+    badge: 'Node.js',
+    icon: '🚀',
+    tags: [{ label: 'Node.js', type: 'success' }, { label: 'PM2', type: 'info' }, { label: '进程管理', type: 'info' }],
+    summary: '使用 nvm 管理 Node.js 版本，配合 PM2 实现进程守护、日志管理、开机自启和集群模式。',
+    sections: [
+      {
+        title: '安装 Node.js',
+        subs: [
+          {
+            title: '使用 nvm 管理（推荐）',
+            code: `<span class="cm"># 安装 nvm</span>
+<span class="cmd">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash</span>
+
+<span class="cm"># 重新加载 shell 配置</span>
+<span class="cmd">source ~/.bashrc</span>
+
+<span class="cm"># 安装 LTS 版本</span>
+<span class="cmd">nvm install --lts</span>
+<span class="cmd">nvm use --lts</span>
+<span class="cmd">nvm alias default lts/*</span>
+
+<span class="cm"># 验证</span>
+<span class="cmd">node -v && npm -v</span>`,
+            label: 'bash'
+          },
+          {
+            title: '直接安装（Ubuntu / CentOS）',
+            code: `<span class="cm"># Ubuntu / Debian</span>
+<span class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</span>
+<span class="cmd">sudo apt-get install -y nodejs</span>
+
+<span class="cm"># CentOS / RHEL</span>
+<span class="cmd">curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -</span>
+<span class="cmd">sudo yum install -y nodejs</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '安装与使用 PM2',
+        subs: [
+          {
+            title: '安装 PM2',
+            code: `<span class="cmd">npm install -g pm2</span>
+<span class="cmd">pm2 --version</span>`,
+            label: 'bash'
+          },
+          {
+            title: '常用命令',
+            code: `<span class="cm"># 启动应用</span>
+<span class="cmd">pm2 start npm --name "myapp" -- start</span>
+<span class="cmd">pm2 start dist/index.js --name "myapp"</span>
+
+<span class="cm"># 查看 / 日志 / 重启 / 停止 / 删除</span>
+<span class="cmd">pm2 list</span>
+<span class="cmd">pm2 logs myapp --lines 100</span>
+<span class="cmd">pm2 restart myapp</span>
+<span class="cmd">pm2 stop myapp</span>
+<span class="cmd">pm2 delete myapp</span>
+
+<span class="cm"># 持久化：保存进程列表 + 开机自启</span>
+<span class="cmd">pm2 save</span>
+<span class="cmd">pm2 startup</span>`,
+            label: 'bash'
+          },
+          {
+            title: '集群模式（多核负载均衡）',
+            code: `<span class="cmd">pm2 start app.js -i max      </span><span class="cm"># 自动按 CPU 核数创建实例</span>
+<span class="cmd">pm2 start app.js -i 4</span>`,
+            label: 'bash'
+          },
+          {
+            title: 'ecosystem.config.js',
+            code: `<span class="kw">module.exports</span> = {
+  apps: [{
+    name: <span class="st">'myapp'</span>,
+    script: <span class="st">'./dist/index.js'</span>,
+    instances: <span class="st">'max'</span>,
+    exec_mode: <span class="st">'cluster'</span>,
+    env: { NODE_ENV: <span class="st">'production'</span>, PORT: <span class="st">'3000'</span> },
+    error_file: <span class="st">'./logs/error.log'</span>,
+    out_file: <span class="st">'./logs/out.log'</span>,
+    max_memory_restart: <span class="st">'500M'</span>,
+    autorestart: true,
+    watch: false
+  }]
+};`,
+            label: 'ecosystem.config.js'
+          }
+        ]
+      },
+      {
+        title: '部署流程',
+        steps: [
+          '本地打包项目：<code>npm run build</code>',
+          '通过 scp 或 git 将代码上传到服务器',
+          '安装生产依赖：<code>npm install --production</code>',
+          '启动服务：<code>pm2 start ecosystem.config.js</code>',
+          '保存进程列表：<code>pm2 save</code>',
+          '设置开机自启：<code>pm2 startup</code>，按提示执行生成的命令'
+        ],
+        deployScript: `<span class="cm">#!/bin/bash</span>
+<span class="cm"># deploy.sh</span>
+
+<span class="kw">APP_NAME</span>=<span class="st">"myapp"</span>
+<span class="kw">APP_DIR</span>=<span class="st">"/var/www/myapp"</span>
+
+<span class="cmd">cd</span> <span class="kw">$APP_DIR</span>
+<span class="cmd">git pull origin main</span>
+<span class="cmd">npm install</span>
+<span class="cmd">npm run build</span>
+<span class="cmd">pm2 restart</span> <span class="kw">$APP_NAME</span>`
+      }
+    ],
+    rules: [
+      { type: 'info', text: '使用 nvm 可以方便地在不同 Node.js 版本之间切换，推荐用于多项目服务器环境。' },
+      { type: 'success', text: 'PM2 集群模式可以充分利用多核 CPU，零停机重载（<code>pm2 reload myapp</code>）适合生产更新。' }
+    ]
+  },
+
+  {
+    id: 'go-deploy',
+    name: 'Go 项目部署',
+    group: '部署',
+    badge: 'Go',
+    icon: '🐹',
+    tags: [{ label: 'Go', type: 'success' }, { label: 'Systemd', type: 'info' }, { label: '交叉编译', type: 'info' }],
+    summary: '安装 Go 运行环境，交叉编译二进制文件，使用 Systemd 进行进程管理和开机自启。',
+    sections: [
+      {
+        title: '安装 Go',
+        subs: [
+          {
+            title: '下载安装（以 1.22 为例）',
+            code: `<span class="cm"># 下载 Go</span>
+<span class="cmd">wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz</span>
+
+<span class="cm"># 解压到 /usr/local</span>
+<span class="cmd">sudo rm -rf /usr/local/go</span>
+<span class="cmd">sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz</span>
+
+<span class="cm"># 配置环境变量（追加到 ~/.bashrc）</span>
+<span class="cmd">echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc</span>
+<span class="cmd">echo 'export GOPATH=$HOME/go' >> ~/.bashrc</span>
+<span class="cmd">echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc</span>
+<span class="cmd">source ~/.bashrc</span>
+
+<span class="cm"># 验证</span>
+<span class="cmd">go version</span>`,
+            label: 'bash'
+          },
+          {
+            title: '使用 gvm 版本管理（推荐）',
+            code: `<span class="cmd">bash &lt;(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)</span>
+<span class="cmd">echo 'source $HOME/.gvm/scripts/gvm' >> ~/.zshrc</span>
+<span class="cmd">source ~/.zshrc</span>
+
+<span class="cm"># 安装并切换版本</span>
+<span class="cmd">gvm install go1.22.5</span>
+<span class="cmd">gvm use go1.22.5</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '编译与部署',
+        subs: [
+          {
+            title: '交叉编译（本地构建）',
+            code: `<span class="cm"># Linux amd64（部署到 Linux 服务器）</span>
+<span class="cmd">CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o myapp</span>
+
+<span class="cm"># macOS</span>
+<span class="cmd">CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o myapp</span>
+
+<span class="cm"># Windows</span>
+<span class="cmd">CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o myapp.exe</span>`,
+            label: 'bash'
+          },
+          {
+            title: '在服务器直接构建',
+            code: `<span class="cmd">git clone https://github.com/yourname/myproject.git</span>
+<span class="cmd">cd myproject</span>
+<span class="cmd">go mod download</span>
+<span class="cmd">go build -o myapp</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '使用 Systemd 管理进程',
+        subs: [
+          {
+            title: '创建服务文件',
+            code: `<div class="cmd">nano /etc/systemd/system/admin-api.service</div><div class="cmd">nano /etc/systemd/system/sys-rpc.service</div><div class="cmd">sudo nano /etc/systemd/system/etcd.service</div>`,
+            label: 'bash'
+          },
+          {
+            title: 'admin-api.service',
+            code: `<span class="st">[Unit]
+Description=My Go Application
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/root/backend/go/admin-api -f /root/backend/go/etc/admin-api.yaml
+WorkingDirectory=/root/backend/go/admin-api
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</span>`,
+            label: 'admin-api.service'
+          },
+          {
+            title: 'sys-rpc.service',
+            code: `<span class="st">[Unit]
+Description=My Go Application
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/backend/go
+ExecStart=/root/backend/go/sys-rpc -f /root/backend/go/etc/sys.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</span>`,
+            label: 'sys-rpc.service'
+          },
+          {
+            title: 'etcd.service',
+            code: `<span class="st">[Unit]
+Description=etcd Single Node Service
+After=network.target
+
+[Service]
+User=root
+# 数据持久化目录
+ExecStart=/usr/local/bin/etcd \
+  --name local-node \
+  --data-dir=/var/lib/etcd-data \
+  # 监听所有网卡，本机/其他服务都能访问
+  --listen-client-urls=http://0.0.0.0:2379 \
+  # 注册给微服务的访问地址
+  --advertise-client-urls=http://111.228.13.10:2379 \
+  # 监听节点间通信地址
+  --listen-peer-urls=http://0.0.0.0:2380 \
+  # 关键：必须和 initial-cluster 里的地址完全一致
+  --initial-advertise-peer-urls=http://111.228.13.10:2380 \
+  # 初始集群配置
+  --initial-cluster local-node=http://111.228.13.10:2380 \
+  --initial-cluster-state new \
+  --initial-cluster-token etcd-cluster
+# 进程崩溃自动重启
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target</span>`,
+            label: 'etcd.service'
+          },
+          {
+            title: '启动与管理',
+            code: `<span class="cmd">systemctl daemon-reload</span>
+<span class="cmd">systemctl start myapp</span>
+<span class="cmd">systemctl enable myapp</span>   <span class="cm"># 开机自启</span>
+<span class="cmd">systemctl status myapp</span>
+<span class="cmd">journalctl -u myapp -f</span>    <span class="cm"># 实时查看日志</span>`,
+            label: 'bash'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: '交叉编译时设置 <code>CGO_ENABLED=0</code> 可生成纯静态二进制，无需在目标机器安装任何依赖，直接复制可运行。' },
+      { type: 'success', text: 'Systemd 的 <code>Restart=on-failure</code> 配置会在程序异常退出时自动重启，比 PM2 更轻量，适合单一 Go 服务。' }
+    ]
+  },
+
+  {
+    id: 'frontend-nginx',
+    name: '前端 + Nginx',
+    group: '部署',
+    badge: 'Nginx',
+    icon: '🖥️',
+    tags: [{ label: 'Nginx', type: 'info' }, { label: 'SPA', type: 'success' }, { label: 'HTTPS', type: 'warning' }],
+    summary: '前端项目构建后通过 Nginx 托管静态资源，配置 SPA 路由回退、Gzip 压缩、缓存策略和 HTTPS 证书。',
+    sections: [
+      {
+        title: '构建前端项目',
+        subs: [
+          {
+            title: 'Vue / React 构建',
+            code: `<span class="cmd">npm install</span>
+<span class="cmd">npm run build</span>         <span class="cm"># 生产构建，产物在 dist/</span>`,
+            label: 'bash'
+          },
+          {
+            title: 'vite.config.ts 关键配置',
+            code: `<span class="kw">export default</span> defineConfig({
+  base: <span class="st">'./'</span>,          <span class="cm">// 相对路径，适合部署到任意子目录</span>
+  build: {
+    outDir: <span class="st">'dist'</span>,
+    sourcemap: false,   <span class="cm">// 生产环境关闭</span>
+    rollupOptions: {
+      output: {
+        manualChunks: { vendor: [<span class="st">'vue'</span>, <span class="st">'vue-router'</span>] }
+      }
+    }
+  }
+})`,
+            label: 'vite.config.ts'
+          }
+        ]
+      },
+      {
+        title: '安装与配置 Nginx',
+        subs: [
+          {
+            title: '安装 Nginx',
+            code: `<span class="cm"># Ubuntu / Debian</span>
+<span class="cmd">sudo apt update && sudo apt install nginx -y</span>
+
+<span class="cm"># CentOS / RHEL</span>
+<span class="cmd">sudo yum install nginx -y</span>
+
+<span class="cmd">sudo systemctl start nginx</span>
+<span class="cmd">sudo systemctl enable nginx</span>`,
+            label: 'bash'
+          },
+          {
+            title: 'SPA 站点配置（HTTP）',
+            code: `<span class="kw">server</span> {
+    listen <span class="st">80</span>;
+    server_name <span class="st">example.com</span>;
+    root <span class="st">/var/www/myapp/dist</span>;
+    index <span class="st">index.html</span>;
+
+    <span class="cm"># SPA 路由回退</span>
+    location / {
+        try_files <span class="st">$uri $uri/ /index.html</span>;
+    }
+
+    <span class="cm"># 静态资源长缓存</span>
+    location /assets/ {
+        expires <span class="st">1y</span>;
+        add_header Cache-Control <span class="st">"public, immutable"</span>;
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript;
+}`,
+            label: 'nginx.conf'
+          },
+          {
+            title: '测试与重载',
+            code: `<span class="cmd">sudo nginx -t</span>              <span class="cm"># 检测配置语法</span>
+<span class="cmd">sudo systemctl reload nginx</span>  <span class="cm"># 热重载，零停机</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: 'HTTPS 配置（Let\'s Encrypt）',
+        subs: [
+          {
+            title: '安装 Certbot 并获取证书',
+            code: `<span class="cm"># Ubuntu</span>
+<span class="cmd">sudo apt install certbot python3-certbot-nginx -y</span>
+
+<span class="cm"># 自动配置 Nginx + 获取证书</span>
+<span class="cmd">sudo certbot --nginx -d example.com -d www.example.com</span>
+
+<span class="cm"># 测试自动续期</span>
+<span class="cmd">sudo certbot renew --dry-run</span>`,
+            label: 'bash'
+          },
+          {
+            title: 'HTTPS 完整配置',
+            code: `<span class="kw">server</span> {
+    listen <span class="st">80</span>;
+    server_name <span class="st">example.com www.example.com</span>;
+    return <span class="st">301 https://$server_name$request_uri</span>;
+}
+
+<span class="kw">server</span> {
+    listen <span class="st">443 ssl http2</span>;
+    server_name <span class="st">example.com</span>;
+
+    ssl_certificate     <span class="st">/etc/letsencrypt/live/example.com/fullchain.pem</span>;
+    ssl_certificate_key <span class="st">/etc/letsencrypt/live/example.com/privkey.pem</span>;
+
+    root <span class="st">/var/www/myapp/dist</span>;
+    index <span class="st">index.html</span>;
+
+    location / { try_files <span class="st">$uri $uri/ /index.html</span>; }
+}`,
+            label: 'nginx.conf'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: 'SPA 路由必须配置 <code>try_files $uri $uri/ /index.html</code>，否则刷新非根路径会 404。' },
+      { type: 'success', text: 'Certbot 会自动添加 cron 定时任务，证书到期前自动续签，无需手动维护。' }
+    ]
+  },
+
+//   {
+//     id: 'docker',
+//     name: 'Docker 部署',
+//     group: '部署',
+//     badge: 'Docker',
+//     icon: '🐳',
+//     tags: [{ label: 'Docker', type: 'info' }, { label: 'Dockerfile', type: 'success' }, { label: 'Compose', type: 'warning' }],
+//     summary: '使用 Docker 将前端或后端应用容器化，通过 Dockerfile 构建镜像，配合 docker-compose 编排多服务，实现一键部署。',
+//     sections: [
+//       {
+//         title: '安装 Docker',
+//         subs: [
+//           {
+//             title: 'Ubuntu / Debian',
+//             code: `<span class="cm"># 安装依赖</span>
+// <span class="cmd">sudo apt update</span>
+// <span class="cmd">sudo apt install ca-certificates curl gnupg -y</span>
+// <span class="cm"># 添加 Docker 官方 GPG 密钥</span>
+// <span class="cmd">sudo install -m 0755 -d /etc/apt/keyrings</span>
+// <span class="cmd">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg</span>
+
+// <span class="cm"># 添加 apt 仓库</span>
+// <span class="cmd">echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list</span>
+
+// <span class="cm"># 安装 Docker Engine + Compose</span>
+// <span class="cmd">sudo apt update</span>
+// <span class="cmd">sudo apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y</span>
+
+// <span class="cm"># 验证</span>
+// <span class="cmd">docker --version && docker compose version</span>`,
+//             label: 'bash'
+//           },
+//           {
+//             title: '免 sudo 使用 Docker',
+//             code: `<span class="cmd">sudo usermod -aG docker $USER</span>
+// <span class="cm"># 重新登录或执行以下命令立即生效</span>
+// <span class="cmd">newgrp docker</span>
+// <span class="cmd">docker ps</span>`,
+//             label: 'bash'
+//           }
+//         ]
+//       },
+//       {
+//         title: '前端项目 Dockerfile',
+//         subs: [
+//           {
+//             title: '多阶段构建（推荐）',
+//             code: `<span class="cm"># 阶段 1：构建</span>
+// <span class="kw">FROM</span> <span class="st">node:20-alpine</span> <span class="kw">AS</span> builder
+// <span class="kw">WORKDIR</span> /app
+// <span class="kw">COPY</span> package*.json ./
+// <span class="cmd">RUN npm install</span>
+// <span class="kw">COPY</span> . .
+// <span class="cmd">RUN npm run build</span>
+
+// <span class="cm"># 阶段 2：Nginx 托管静态资源</span>
+// <span class="kw">FROM</span> <span class="st">nginx:alpine</span>
+// <span class="kw">COPY</span> --from=builder /app/dist /usr/share/nginx/html
+// <span class="kw">COPY</span> nginx.conf /etc/nginx/conf.d/default.conf
+// <span class="kw">EXPOSE</span> 80
+// <span class="kw">CMD</span> [<span class="st">"nginx"</span>, <span class="st">"-g"</span>, <span class="st">"daemon off;"</span>]`,
+//             label: 'Dockerfile'
+//           },
+//           {
+//             title: 'nginx.conf（容器内）',
+//             code: `<span class="kw">server</span> {
+//     listen <span class="st">80</span>;
+//     root <span class="st">/usr/share/nginx/html</span>;
+//     index <span class="st">index.html</span>;
+
+//     location / {
+//         try_files <span class="st">$uri $uri/ /index.html</span>;
+//     }
+
+//     location /assets/ {
+//         expires <span class="st">1y</span>;
+//         add_header Cache-Control <span class="st">"public, immutable"</span>;
+//     }
+// }`,
+//             label: 'nginx.conf'
+//           }
+//         ]
+//       },
+//       {
+//         title: '后端项目 Dockerfile（Go / Node.js）',
+//         subs: [
+//           {
+//             title: 'Go 多阶段构建',
+//             code: `<span class="kw">FROM</span> <span class="st">golang:1.22-alpine</span> <span class="kw">AS</span> builder
+// <span class="kw">WORKDIR</span> /app
+// <span class="kw">COPY</span> go.mod go.sum ./
+// <span class="cmd">RUN go mod download</span>
+// <span class="kw">COPY</span> . .
+// <span class="cmd">RUN CGO_ENABLED=0 go build -o server .</span>
+
+// <span class="kw">FROM</span> <span class="st">scratch</span>
+// <span class="kw">COPY</span> --from=builder /app/server /server
+// <span class="kw">EXPOSE</span> 8080
+// <span class="kw">ENTRYPOINT</span> [<span class="st">"/server"</span>]`,
+//             label: 'Dockerfile'
+//           },
+//           {
+//             title: 'Node.js Dockerfile',
+//             code: `<span class="kw">FROM</span> <span class="st">node:20-alpine</span>
+// <span class="kw">WORKDIR</span> /app
+// <span class="kw">COPY</span> package*.json ./
+// <span class="cmd">RUN npm install --production</span>
+// <span class="kw">COPY</span> . .
+// <span class="kw">EXPOSE</span> 3000
+// <span class="kw">CMD</span> [<span class="st">"node"</span>, <span class="st">"dist/index.js"</span>]`,
+//             label: 'Dockerfile'
+//           }
+//         ]
+//       },
+//       {
+//         title: 'docker-compose 编排',
+//         subs: [
+//           {
+//             title: 'docker-compose.yml（前后端 + MySQL）',
+//             code: `<span class="kw">services</span>:
+//   <span class="st">frontend</span>:
+//     build: ./frontend
+//     ports:
+//       - <span class="st">"80:80"</span>
+//     depends_on:
+//       - backend
+
+//   <span class="st">backend</span>:
+//     build: ./backend
+//     ports:
+//       - <span class="st">"8080:8080"</span>
+//     environment:
+//       - DB_HOST=mysql
+//       - DB_PORT=3306
+//       - DB_NAME=myapp
+//       - DB_USER=myuser
+//       - DB_PASS=secret
+//     depends_on:
+//       - mysql
+
+//   <span class="st">mysql</span>:
+//     image: <span class="st">mysql:8.0</span>
+//     environment:
+//       MYSQL_ROOT_PASSWORD: root_secret
+//       MYSQL_DATABASE: myapp
+//       MYSQL_USER: myuser
+//       MYSQL_PASSWORD: secret
+//     volumes:
+//       - mysql_data:/var/lib/mysql
+
+// <span class="kw">volumes</span>:
+//   mysql_data:`,
+//             label: 'docker-compose.yml'
+//           },
+//           {
+//             title: '常用 Compose 命令',
+//             code: `<span class="cm"># 构建并后台启动所有服务</span>
+// <span class="cmd">docker compose up -d --build</span>
+
+// <span class="cm"># 查看运行状态</span>
+// <span class="cmd">docker compose ps</span>
+
+// <span class="cm"># 查看日志</span>
+// <span class="cmd">docker compose logs -f backend</span>
+
+// <span class="cm"># 停止并删除容器（保留 volume）</span>
+// <span class="cmd">docker compose down</span>
+
+// <span class="cm"># 停止并删除容器 + volume（清库）</span>
+// <span class="cmd">docker compose down -v</span>
+
+// <span class="cm"># 重新构建单个服务</span>
+// <span class="cmd">docker compose up -d --build backend</span>`,
+//             label: 'bash'
+//           }
+//         ]
+//       },
+//       {
+//         title: '常用 Docker 命令',
+//         subs: [
+//           {
+//             title: '镜像与容器管理',
+//             code: `<span class="cm"># 构建镜像</span>
+// <span class="cmd">docker build -t myapp:latest .</span>
+// <span class="cmd">docker build -t myapp:v1.0 --no-cache .</span>
+
+// <span class="cm"># 运行容器</span>
+// <span class="cmd">docker run -d -p 3000:3000 --name myapp myapp:latest</span>
+
+// <span class="cm"># 查看 / 日志 / 进入容器</span>
+// <span class="cmd">docker ps</span>
+// <span class="cmd">docker logs -f myapp</span>
+// <span class="cmd">docker exec -it myapp sh</span>
+
+// <span class="cm"># 停止 / 删除</span>
+// <span class="cmd">docker stop myapp && docker rm myapp</span>
+
+// <span class="cm"># 清理未使用的镜像和缓存</span>
+// <span class="cmd">docker system prune -f</span>`,
+//             label: 'bash'
+//           }
+//         ]
+//       }
+//     ],
+//     rules: [
+//       { type: 'info', text: '多阶段构建（multi-stage build）可大幅缩小最终镜像体积：Go 项目从 ~1GB 构建镜像到 ~10MB 的 scratch 镜像。' },
+//       { type: 'warning', text: '生产环境不要将 <code>.env</code> 文件复制进镜像，应通过 <code>docker run -e</code> 或 Compose 的 <code>env_file</code> 注入环境变量。' },
+//       { type: 'success', text: 'docker-compose 中使用服务名作为主机名（如 <code>DB_HOST=mysql</code>），容器间通信走内部网络，无需暴露数据库端口到外部。' }
+//     ]
+//   },
+
+  {
+    id: 'mysql',
+    name: 'MySQL 安装',
+    group: '数据库安装',
+    badge: 'MySQL',
+    icon: '🐬',
+    tags: [{ label: 'MySQL', type: 'orange' }, { label: '关系型', type: 'info' }, { label: 'Ubuntu/CentOS', type: 'info' }],
+    summary: '在 Ubuntu/Debian 或 CentOS/RHEL 上安装 MySQL，完成安全初始化，配置数据库用户与远程访问权限。',
+    sections: [
+      {
+        title: 'Ubuntu / Debian 安装',
+        subs: [
+          {
+            title: '安装步骤',
+            code: `<span class="cmd">sudo apt update && sudo apt upgrade -y</span>
+<span class="cmd">sudo apt install mysql-server -y</span>
+
+<span class="cmd">sudo systemctl start mysql</span>
+<span class="cmd">sudo systemctl enable mysql</span>
+
+<span class="cm"># 安全初始化（设置 root 密码、删除匿名用户等）</span>
+<span class="cmd">sudo mysql_secure_installation</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: 'CentOS / RHEL 安装',
+        subs: [
+          {
+            title: '安装步骤',
+            code: `<span class="cm"># 添加 MySQL Yum 仓库</span>
+<span class="cmd">sudo yum install https://dev.mysql.com/get/mysql80-community-release-el8-4.noarch.rpm</span>
+<span class="cmd">sudo yum install mysql-community-server -y</span>
+
+<span class="cmd">sudo systemctl start mysqld</span>
+<span class="cmd">sudo systemctl enable mysqld</span>
+
+<span class="cm"># 获取安装后的临时 root 密码</span>
+<span class="cmd">sudo grep 'temporary password' /var/log/mysqld.log</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '基本配置',
+        subs: [
+          {
+            title: '创建数据库与用户',
+            code: `<span class="cm"># 登录 MySQL</span>
+<span class="cmd">sudo mysql</span>           <span class="cm"># Ubuntu 默认 root 无密码</span>
+<span class="cmd">mysql -u root -p</span>     <span class="cm"># 带密码登录</span>
+
+<span class="cm"># 创建数据库</span>
+<span class="kw">CREATE DATABASE</span> myapp <span class="kw">CHARACTER SET utf8mb4 COLLATE</span> utf8mb4_unicode_ci;
+
+<span class="cm"># 创建用户并授权</span>
+<span class="kw">CREATE USER</span> 'myuser'@'localhost' <span class="kw">IDENTIFIED BY</span> 'your_password';
+<span class="kw">GRANT ALL PRIVILEGES ON</span> myapp.* <span class="kw">TO</span> 'myuser'@'localhost';
+<span class="kw">FLUSH PRIVILEGES;</span>`,
+            label: 'sql'
+          },
+          {
+            title: '允许远程访问',
+            code: `<span class="cm"># 编辑配置文件，修改 bind-address</span>
+<span class="cmd">sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf</span>
+<span class="cm"># 将 bind-address = 127.0.0.1 改为：</span>
+<span class="st">bind-address = 0.0.0.0</span>
+
+<span class="cmd">sudo systemctl restart mysql</span>
+
+<span class="cm"># 在 MySQL 中授权远程用户</span>
+<span class="kw">CREATE USER</span> 'myuser'@'%' <span class="kw">IDENTIFIED BY</span> 'your_password';
+<span class="kw">GRANT ALL PRIVILEGES ON</span> myapp.* <span class="kw">TO</span> 'myuser'@'%';
+<span class="kw">FLUSH PRIVILEGES;</span>`,
+            label: 'bash + sql'
+          }
+        ]
+      },
+      {
+        title: '常用运维命令',
+        subs: [
+          {
+            title: '日常操作',
+            code: `<span class="kw">SHOW DATABASES;</span>
+<span class="kw">USE</span> myapp;
+<span class="kw">SHOW TABLES;</span>
+<span class="kw">SHOW STATUS LIKE</span> 'Threads_connected';
+
+<span class="cm"># 导出数据库</span>
+<span class="cmd">mysqldump -u myuser -p myapp > backup.sql</span>
+
+<span class="cm"># 导入 SQL 文件</span>
+<span class="cmd">mysql -u myuser -p myapp &lt; backup.sql</span>`,
+            label: 'sql + bash'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'orange', text: '开放远程访问（<code>bind-address = 0.0.0.0</code>）时，务必在防火墙限制只有受信任 IP 可访问 3306 端口。' },
+      { type: 'info', text: 'CentOS 首次登录后必须立即修改临时密码：<code>ALTER USER \'root\'@\'localhost\' IDENTIFIED BY \'new_password\';</code>' }
+    ]
+  },
+
+  {
+    id: 'redis',
+    name: 'Redis 安装',
+    group: '数据库安装',
+    badge: 'Redis',
+    icon: '🔴',
+    tags: [{ label: 'Redis', type: 'orange' }, { label: 'KV 存储', type: 'info' }, { label: 'Ubuntu/CentOS', type: 'info' }],
+    summary: '在 Ubuntu/Debian 或 CentOS/RHEL 上安装 Redis，配置密码认证与远程访问，并掌握常用运维命令。',
+    sections: [
+      {
+        title: 'Ubuntu / Debian 安装',
+        subs: [
+          {
+            title: '安装步骤',
+            code: `<span class="cmd">sudo apt update</span>
+<span class="cmd">sudo apt install redis-server -y</span>
+
+<span class="cmd">sudo systemctl start redis</span>
+<span class="cmd">sudo systemctl enable redis</span>
+
+<span class="cm"># 测试连接（应返回 PONG）</span>
+<span class="cmd">redis-cli ping</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: 'CentOS / RHEL 安装',
+        subs: [
+          {
+            title: '安装步骤',
+            code: `<span class="cmd">sudo yum install epel-release -y</span>
+<span class="cmd">sudo yum install redis -y</span>
+
+<span class="cmd">sudo systemctl start redis</span>
+<span class="cmd">sudo systemctl enable redis</span>
+<span class="cmd">redis-cli ping</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '配置远程访问与密码',
+        subs: [
+          {
+            title: '修改 redis.conf',
+            code: `<span class="cmd">sudo nano /etc/redis/redis.conf</span>
+
+<span class="cm"># 修改绑定地址（允许所有 IP）</span>
+<span class="st">bind 0.0.0.0</span>
+
+<span class="cm"># 设置密码（推荐）</span>
+<span class="st">requirepass your_redis_password</span>
+
+<span class="cm"># 重启生效</span>
+<span class="cmd">sudo systemctl restart redis</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '常用运维命令',
+        subs: [
+          {
+            title: '连接与基础操作',
+            code: `<span class="cm"># 连接</span>
+<span class="cmd">redis-cli</span>
+<span class="cmd">redis-cli -a your_redis_password</span>
+
+<span class="cm"># 基础命令</span>
+<span class="kw">SET</span> key value
+<span class="kw">GET</span> key
+<span class="kw">DEL</span> key
+<span class="kw">EXPIRE</span> key 3600       <span class="cm"># 设置过期时间（秒）</span>
+<span class="kw">TTL</span> key               <span class="cm"># 查看剩余时间</span>
+<span class="kw">KEYS</span> *
+<span class="kw">DBSIZE</span>                <span class="cm"># key 总数</span>
+<span class="kw">FLUSHALL</span>              <span class="cm"># 清空所有数据（谨慎）</span>
+
+<span class="cm"># 查看内存使用</span>
+<span class="kw">INFO</span> memory`,
+            label: 'redis-cli'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'orange', text: '生产环境必须设置 <code>requirepass</code>，并通过防火墙限制 6379 端口的访问来源。' },
+      { type: 'info', text: 'Redis 默认将数据持久化到 <code>/var/lib/redis/dump.rdb</code>，重启不会丢失数据；如需更高持久性，可开启 AOF 模式。' }
+    ]
+  }
+];
+
+// ── Build sidebar nav ────────────────────────────────────────────────
+const sidebarNav = document.getElementById('sidebar-nav');
+const groups = [...new Set(pages.map(p => p.group))];
+
+const groupIcon = { '部署': '📦', '数据库安装': '🗄️' };
+
+groups.forEach(group => {
+  const groupEl = document.createElement('div');
+  groupEl.className = 'nav-group';
+
+  const label = document.createElement('div');
+  label.className = 'nav-group-label';
+  label.textContent = group;
+  groupEl.appendChild(label);
+
+  pages.filter(p => p.group === group).forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'nav-item';
+    item.dataset.id = p.id;
+    item.innerHTML = `<span class="nav-icon">${p.icon}</span>${p.name}`;
+    item.addEventListener('click', () => selectPage(p.id));
+    groupEl.appendChild(item);
+  });
+
+  sidebarNav.appendChild(groupEl);
+});
+
+// ── Render page ──────────────────────────────────────────────────────
+function renderPage(p) {
+  const el = document.createElement('div');
+  el.className = 'page';
+  el.id = 'page-' + p.id;
+
+  const tagsHtml = p.tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('');
+
+  let sectionsHtml = '';
+  p.sections.forEach(sec => {
+    let bodyHtml = '';
+
+    if (sec.subs) {
+      sec.subs.forEach(sub => {
+        bodyHtml += `
+          <div class="sub-section">
+            <div class="sub-section-title">${sub.title}</div>
+            <div class="code-block-wrap">
+              <div class="code-block-label">
+                <span class="code-block-label-text">${sub.label}</span>
+              </div>
+              <pre><code>${sub.code}</code></pre>
+            </div>
+          </div>`;
+      });
+    }
+
+    if (sec.steps) {
+      const stepsHtml = sec.steps.map((s, i) =>
+        `<li><span class="step-num">${String(i + 1).padStart(2, '0')}</span><span>${s}</span></li>`
+      ).join('');
+      bodyHtml += `<ul class="step-list">${stepsHtml}</ul>`;
+    }
+
+    if (sec.deployScript) {
+      bodyHtml += `
+        <div class="sub-section" style="margin-top:14px">
+          <div class="sub-section-title">完整部署脚本</div>
+          <div class="code-block-wrap">
+            <div class="code-block-label"><span class="code-block-label-text">deploy.sh</span></div>
+            <pre><code>${sec.deployScript}</code></pre>
+          </div>
+        </div>`;
+    }
+
+    sectionsHtml += `
+      <div class="section">
+        <div class="section-title">${sec.title}</div>
+        <div class="section-body">${bodyHtml}</div>
+      </div>`;
+  });
+
+  const rulesHtml = p.rules.map(r =>
+    `<div class="rule-box rule-box-${r.type}">${r.text}</div>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div class="page-icon">${p.icon}</div>
+      <div class="page-meta">
+        <div class="page-title">${p.name}</div>
+        <div class="page-tags">${tagsHtml}</div>
+      </div>
+    </div>
+    <div class="page-divider"></div>
+
+    <div class="section">
+      <div class="section-title">概述</div>
+      <div class="section-body"><p>${p.summary}</p></div>
+    </div>
+
+    ${sectionsHtml}
+
+    <div class="section">
+      <div class="section-title">注意事项</div>
+      ${rulesHtml}
+    </div>
+  `;
+
+  document.getElementById('article-wrapper').appendChild(el);
+}
+
+pages.forEach(renderPage);
+
+// ── Select page ──────────────────────────────────────────────────────
+function selectPage(id) {
+  const p = pages.find(x => x.id === id);
+  if (!p) return;
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+
+  document.querySelectorAll('.page').forEach(el => {
+    el.classList.toggle('active', el.id === 'page-' + id);
+  });
+
+  document.getElementById('content-header-name').textContent = p.name;
+
+  const badge = document.getElementById('content-header-badge');
+  badge.textContent = p.badge;
+  badge.style.color = '';
+  badge.style.borderColor = '';
+
+  document.getElementById('article-wrapper').scrollTop = 0;
+  document.getElementById('mobile-topbar-title').textContent = p.name;
+  closeSidebar();
+}
+
+// ── Mobile sidebar ───────────────────────────────────────────────────
+const sidebarEl = document.getElementById('sidebar-el');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const mobileTopbar = document.getElementById('mobile-topbar');
+const menuToggleTop = document.getElementById('menu-toggle-top');
+const sidebarClose = document.getElementById('sidebar-close');
+const mq = window.matchMedia('(max-width: 700px)');
+
+function openSidebar() { sidebarEl.classList.add('open'); sidebarOverlay.classList.add('visible'); }
+function closeSidebar() { sidebarEl.classList.remove('open'); sidebarOverlay.classList.remove('visible'); }
+
+menuToggleTop.addEventListener('click', openSidebar);
+sidebarClose.addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+function applyMobileLayout(isMobile) {
+  mobileTopbar.style.display = isMobile ? 'flex' : 'none';
+  sidebarClose.style.display = isMobile ? 'flex' : 'none';
+  if (!isMobile) closeSidebar();
+}
+
+mq.addEventListener('change', e => applyMobileLayout(e.matches));
+applyMobileLayout(mq.matches);
+
+// ── Init: select first page ──────────────────────────────────────────
+selectPage(pages[0].id);
+</script>
+</body>
+</html>

@@ -925,6 +925,243 @@ const sortedList = useMemo(
       { type: 'info', text: 'eslint-plugin-react-hooks 的 <code>rules-of-hooks</code> 规则会在编译阶段检测这类问题，务必开启。' },
     ],
   },
+
+  {
+    id: 'ref-not-rerender',
+    name: 'useRef 修改不触发重渲染',
+    group: 'Hooks 陷阱',
+    severity: 'warning',
+    icon: '🔄',
+    tags: [{ label: '常见', type: 'warning' }, { label: 'useRef', type: 'info' }, { label: 're-render', type: 'info' }],
+    summary: 'useRef 返回的 ref 对象在 .current 属性变化时不会触发组件重渲染。如果把 ref 当作 state 用，UI 不会更新。',
+    wrongLabel: '❌ 错误 — 修改 ref 后期望 UI 更新',
+    wrongCode: `function Counter() {
+  const countRef = useRef(0);
+
+  function handleClick() {
+    countRef.current += 1; // 值变了，但组件不会重渲染
+    console.log(countRef.current); // 打印正确值
+    // 但页面上仍然显示 0
+  }
+
+  return <div onClick={handleClick}>{countRef.current}</div>;
+}`,
+    rightLabel: '✅ 正确 — ref 存非响应式数据，UI 数据用 state',
+    rightCode: `function Counter() {
+  const [count, setCount] = useState(0);
+  const renderCountRef = useRef(0); // 记录渲染次数（不需要展示）
+
+  renderCountRef.current += 1;
+
+  function handleClick() {
+    setCount(c => c + 1); // 触发重渲染
+  }
+
+  return (
+    <div onClick={handleClick}>
+      <div>count: {count}</div>
+      <div>renderCount: {renderCountRef.current}</div>
+    </div>
+  );
+}`,
+    rules: [
+      { type: 'info', text: 'useRef 的正确场景：保存 DOM 节点、保存 interval ID、保存上一次的 props/state、保存不需要触发渲染的 mutable 值。' },
+      { type: 'warning', text: '若需要"修改值并触发渲染"，用 state；若需要"读取最新值但不触发渲染"，用 ref。两者可以组合使用。' },
+    ],
+  },
+
+  {
+    id: 'layout-effect-sync',
+    name: 'useLayoutEffect 阻塞渲染',
+    group: '生命周期陷阱',
+    severity: 'warning',
+    icon: '⏱️',
+    tags: [{ label: '性能', type: 'warning' }, { label: 'useLayoutEffect', type: 'info' }, { label: 'useEffect', type: 'info' }],
+    summary: 'useLayoutEffect 在浏览器绘制前同步执行，阻塞视觉更新。如果内部执行耗时操作，会导致页面卡顿。绝大多数场景应该用 useEffect。',
+    wrongLabel: '❌ 错误 — 在 useLayoutEffect 中做大量计算或异步请求',
+    wrongCode: `function Chart() {
+  const canvasRef = useRef(null);
+
+  useLayoutEffect(() => {
+    // ❌ 同步阻塞绘制！复杂绘制导致页面卡顿
+    const ctx = canvasRef.current.getContext('2d');
+    for (let i = 0; i < 10000; i++) {
+      drawComplexShape(ctx, i); // 阻塞主线程
+    }
+  }, []);
+
+  return <canvas ref={canvasRef} />;
+}`,
+    rightLabel: '✅ 正确 — 用 useEffect 做异步/耗时操作，useLayoutEffect 只处理同步 DOM 测量',
+    rightCode: `function Tooltip() {
+  const tooltipRef = useRef(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    // ✅ 同步测量 DOM，避免闪烁
+    const rect = tooltipRef.current.getBoundingClientRect();
+    setPosition({ top: rect.bottom + 8, left: rect.left });
+  }, []);
+
+  return (
+    <div>
+      <button ref={tooltipRef}>Hover me</button>
+      <div style={{ position: 'absolute', ...position }}>Tooltip</div>
+    </div>
+  );
+}`,
+    rules: [
+      { type: 'warning', text: 'useLayoutEffect 在服务端渲染（SSR）中会触发警告，因为它在服务端无法执行。SSR 场景下测量 DOM 应放在 useEffect 中。' },
+      { type: 'info', text: '判断标准：如果操作会导致视觉闪烁（先看到旧布局再跳到新布局），用 useLayoutEffect；否则一律用 useEffect。' },
+    ],
+  },
+
+  {
+    id: 'transition-priority',
+    name: 'useTransition 优先级误用',
+    group: '性能陷阱',
+    severity: 'warning',
+    icon: '🚦',
+    tags: [{ label: 'React 18', type: 'warning' }, { label: 'useTransition', type: 'info' }, { label: '并发', type: 'info' }],
+    summary: 'useTransition 将更新标记为"可中断的低优先级"，但不应该把所有更新都包进去。高优先级更新（如输入反馈）不应被 transition 包裹，否则会导致交互延迟。',
+    wrongLabel: '❌ 错误 — 所有更新都包进 transition',
+    wrongCode: `function Search() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    const value = e.target.value;
+    startTransition(() => {
+      setQuery(value); // ❌ 输入框显示也延迟了！
+      setResults(search(value));
+    });
+  }
+
+  return <input value={query} onChange={handleChange} />;
+}`,
+    rightLabel: '✅ 正确 — 只把耗时更新（如列表过滤）包进 transition',
+    rightCode: `function Search() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    const value = e.target.value;
+    setQuery(value); // ✅ 输入框立即更新（高优先级）
+
+    startTransition(() => {
+      setResults(search(value)); // 列表过滤可以延迟/中断
+    });
+  }
+
+  return (
+    <>
+      <input value={query} onChange={handleChange} />
+      {isPending && <div>Loading...</div>}
+      <Results data={results} />
+    </>
+  );
+}`,
+    rules: [
+      { type: 'info', text: 'useTransition 适合：大型列表过滤、路由切换、复杂图表重绘。不适合：输入框反馈、按钮点击、弹窗开关。' },
+      { type: 'warning', text: '在 transition 中不能调用同步的 setState 来读取 DOM（如 <code>flushSync</code>），会抛出错误。transition 内必须保持纯异步。' },
+    ],
+  },
+
+  {
+    id: 'form-action-state',
+    name: 'useActionState 返回值混淆',
+    group: 'React 19 新特性',
+    severity: 'warning',
+    icon: '📝',
+    tags: [{ label: 'React 19', type: 'warning' }, { label: 'useActionState', type: 'info' }, { label: 'form', type: 'info' }],
+    summary: 'React 19 的 useActionState 返回 [state, formAction, isPending]。新手常把 formAction 直接传给 onSubmit 而非 form 的 action，或混淆 state 的初始值位置。',
+    wrongLabel: '❌ 错误 — formAction 传给 onSubmit，且初始值位置错误',
+    wrongCode: `function LoginForm() {
+  // ❌ 初始值应该放在 useActionState 参数，不是解构位置
+  const [state, formAction] = useActionState();
+
+  return (
+    <form onSubmit={formAction}> {/* ❌ 应该传给 form 的 action 属性 */}
+      <input name="email" />
+      <button>Submit</button>
+    </form>
+  );
+}`,
+    rightLabel: '✅ 正确 — 初始值传给 hook，formAction 传给 action 属性',
+    rightCode: `async function loginAction(prevState, formData) {
+  const email = formData.get('email');
+  const result = await api.login(email);
+  return result.error ? { error: result.error } : { success: true };
+}
+
+function LoginForm() {
+  const [state, formAction, isPending] = useActionState(loginAction, null);
+
+  return (
+    <form action={formAction}>
+      <input name="email" />
+      <button disabled={isPending}>
+        {isPending ? 'Submitting...' : 'Submit'}
+      </button>
+      {state?.error && <div className="error">{state.error}</div>}
+    </form>
+  );
+}`,
+    rules: [
+      { type: 'info', text: 'useActionState 的 action 函数签名：<code>(prevState, formData) =&gt; newState</code>。第一个参数是上一次返回的 state，第二个是 FormData。' },
+      { type: 'warning', text: 'action 必须是 async 函数，否则 isPending 不会正确变化。同步 action 不会触发 pending 状态。' },
+    ],
+  },
+
+  {
+    id: 'optimistic-ui',
+    name: 'useOptimistic 与真实状态同步',
+    group: 'React 19 新特性',
+    severity: 'warning',
+    icon: '✨',
+    tags: [{ label: 'React 19', type: 'warning' }, { label: 'useOptimistic', type: 'info' }, { label: 'UX', type: 'info' }],
+    summary: 'useOptimistic 在 action 执行期间展示乐观状态，但开发者常忘记在 action 失败时回滚，或乐观更新与真实 state 的合并逻辑出错。',
+    wrongLabel: '❌ 错误 — 乐观更新后没有处理失败回滚',
+    wrongCode: `function LikeButton({ postId, initialLikes }) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [optimisticLikes, addOptimisticLike] = useOptimistic(likes);
+
+  async function handleLike() {
+    addOptimisticLike(likes + 1); // 乐观 +1
+    await api.like(postId); // 如果这里失败，UI 显示 +1 但实际没成功
+    setLikes(likes + 1);
+  }
+
+  return <button onClick={handleLike}>♥ {optimisticLikes}</button>;
+}`,
+    rightLabel: '✅ 正确 — 用 try/catch 处理失败，确保状态一致',
+    rightCode: `function LikeButton({ postId, initialLikes }) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [optimisticLikes, addOptimisticLike] = useOptimistic(
+    likes,
+    (current, newLike) => current + newLike
+  );
+
+  async function handleLike() {
+    addOptimisticLike(1); // 乐观 +1
+    try {
+      const result = await api.like(postId);
+      setLikes(result.likes); // 用服务端返回的真实值
+    } catch (err) {
+      // 失败时乐观值自动回滚到 likes，无需手动处理
+      console.error('Like failed', err);
+    }
+  }
+
+  return <button onClick={handleLike}>♥ {optimisticLikes}</button>;
+}`,
+    rules: [
+      { type: 'info', text: 'useOptimistic 的第二个参数是更新函数：<code>(currentState, optimisticValue) =&gt; nextState</code>。失败时 React 自动回滚到真实 state。' },
+      { type: 'warning', text: '乐观更新期间如果组件卸载，React 会自动清理。但如果 action 内部有副作用（如 toast 通知），需要在 cleanup 中处理。' },
+    ],
+  },
 ];
 
 // ── Build sidebar nav ──────────────────────────────────────────────────

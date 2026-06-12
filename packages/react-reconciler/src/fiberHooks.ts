@@ -1,6 +1,7 @@
 import { FiberNode } from './fiber';
-import { HookHasEffect, HookPassive, HookLayout, HookInsertion, PassiveEffect, LayoutEffect, InsertionEffect } from '@p-react/shared';
+import { HookHasEffect, HookPassive, HookLayout, HookInsertion, PassiveEffect, LayoutEffect, InsertionEffect, SyncLane } from '@p-react/shared';
 import type { ReactContext } from '@p-react/react';
+import type { Lane } from '@p-react/shared';
 
 // --- 类型定义 ---
 
@@ -58,9 +59,9 @@ let isMount = true;
  * scheduleUpdateOnFiber 的引用，由 workLoop 注入
  * 避免 fiberHooks → workLoop 的循环依赖
  */
-let scheduleUpdateOnFiberFn: ((fiber: FiberNode) => void) | null = null;
+let scheduleUpdateOnFiberFn: ((fiber: FiberNode, lane?: Lane) => void) | null = null;
 
-export function setScheduleUpdateOnFiber(fn: (fiber: FiberNode) => void) {
+export function setScheduleUpdateOnFiber(fn: (fiber: FiberNode, lane?: Lane) => void) {
   scheduleUpdateOnFiberFn = fn;
 }
 
@@ -116,10 +117,90 @@ export function useReducer<State, Action>(
   return updateReducer(reducer);
 }
 
+/**
+ * useState 的 Lane 版本，允许指定更新使用的 Lane 优先级
+ * 用于演示 Lane 模型：不同更新可以走不同 Lane
+ */
+export function useStateWithLane<State>(
+  initialState: (() => State) | State,
+  lane: Lane
+): [State, (action: ((prevState: State) => State) | State) => void] {
+  if (isMount) {
+    return mountStateWithLane(initialState, lane);
+  }
+  return updateStateWithLane();
+}
+
+function mountStateWithLane<State>(
+  initialState: (() => State) | State,
+  lane: Lane
+): [State, (action: ((prevState: State) => State) | State) => void] {
+  const hook = mountWorkInProgressHook();
+
+  const memoizedState =
+    typeof initialState === 'function'
+      ? (initialState as () => State)()
+      : initialState;
+
+  hook.memoizedState = memoizedState;
+
+  const queue: UpdateQueue<State> = {
+    pending: null,
+    lastRenderedState: memoizedState,
+  };
+  hook.queue = queue;
+
+  const dispatch = dispatchSetState.bind(
+    null,
+    currentlyRenderingFiber!,
+    queue,
+    undefined,
+    lane
+  ) as (action: ((prevState: State) => State) | State) => void;
+
+  return [hook.memoizedState, dispatch];
+}
+
+function updateStateWithLane<State>(): [
+  State,
+  (action: ((prevState: State) => State) | State) => void
+] {
+  const hook = updateWorkInProgressHook();
+  const queue = hook.queue as UpdateQueue<State>;
+  const pending = queue.pending;
+
+  let baseState = hook.memoizedState as State;
+
+  if (pending !== null) {
+    const firstUpdate = pending.next!;
+    let update: Update<State> | null = firstUpdate;
+    do {
+      const action = update!.action;
+      baseState = basicStateReducer(baseState, action);
+      update = update!.next;
+    } while (update !== firstUpdate);
+
+    queue.pending = null;
+  }
+
+  hook.memoizedState = baseState;
+  queue.lastRenderedState = baseState;
+
+  // update 阶段复用 mount 时绑定到 queue 的 lane，通过闭包保持
+  const dispatch = dispatchSetState.bind(
+    null,
+    currentlyRenderingFiber!,
+    queue
+  ) as (action: ((prevState: State) => State) | State) => void;
+
+  return [baseState, dispatch];
+}
+
 // 对应源码: ReactFiberHooks.js → mountReducer
 function mountReducer<State, Action>(
   reducer: (state: State, action: Action) => State,
-  initialArg: State
+  initialArg: State,
+  lane: Lane = SyncLane
 ): [State, (action: Action) => void] {
   const hook = mountWorkInProgressHook();
   hook.memoizedState = initialArg;
@@ -134,7 +215,8 @@ function mountReducer<State, Action>(
     null,
     currentlyRenderingFiber!,
     queue,
-    reducer
+    reducer,
+    lane
   ) as (action: Action) => void;
 
   return [hook.memoizedState, dispatch];
@@ -238,7 +320,9 @@ function mountState<State>(
   const dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber!,
-    queue
+    queue,
+    undefined,
+    SyncLane
   ) as (action: ((prevState: State) => State) | State) => void;
 
   return [memoizedState, dispatch];
@@ -277,7 +361,9 @@ function updateState<State>(): [
   const dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber!,
-    queue
+    queue,
+    undefined,
+    SyncLane
   ) as (action: ((prevState: State) => State) | State) => void;
 
   return [baseState, dispatch];
@@ -305,7 +391,8 @@ function basicStateReducer<State>(
 function dispatchSetState<State>(
   fiber: FiberNode,
   queue: UpdateQueue<any>,
-  action: ((prevState: State) => State) | State
+  action: ((prevState: State) => State) | State,
+  lane: Lane = SyncLane
 ): void {
   const update: Update<State> = { action, next: null };
 
@@ -319,7 +406,7 @@ function dispatchSetState<State>(
   }
   queue.pending = update;
 
-  scheduleUpdateOnFiberFn!(fiber);
+  scheduleUpdateOnFiberFn!(fiber, lane);
 }
 
 // --- useEffect ---

@@ -10,6 +10,7 @@ export default defineConfig({
         hub: resolve(__dirname, 'demo/hub.html'),
         runner: resolve(__dirname, 'demo/runner.html'),
         pitfalls: resolve(__dirname, 'demo/pitfalls.html'),
+        deployment: resolve(__dirname, 'demo/deployment.html'),
       },
     },
   },

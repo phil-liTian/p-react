@@ -1,5 +1,5 @@
 import { FiberNode, FiberRootNode } from './fiber';
-import { HostRoot, NoFlags } from '@p-react/shared';
+import { HostRoot, NoFlags, type Lane, SyncLane, DefaultLane, NoLanes, mergeLanes, removeLanes, getNextLanes, markRootUpdated, markRootFinished } from '@p-react/shared';
 import { beginWork } from './beginWork';
 import { createCompleteWork } from './completeWork';
 import { createCommitWork } from './commitWork';
@@ -12,6 +12,8 @@ import type { HostConfig } from './hostConfig';
  *
  * 1. performUnitOfWork 驱动 beginWork (递) 和 completeWork (归)
  * 2. 构建完成后调用 commitRoot 将变更应用到 DOM
+ * 3. 接入 Lane 模型：scheduleUpdateOnFiber 接收 lane，markUpdateFromFiberToRoot 沿路更新 childLanes，
+ *    performWorkOnRoot 通过 getNextLanes 决定本次渲染 Lane，commit 后用 markRootFinished 清理 pendingLanes
  */
 export function createWorkLoop(hostConfig: HostConfig) {
   const completeWork = createCompleteWork(hostConfig);
@@ -24,25 +26,34 @@ export function createWorkLoop(hostConfig: HostConfig) {
    * 调度更新的统一入口
    * 无论是首次 render 还是后续 setState，都通过此函数触发渲染流程：
    * 先从触发更新的 fiber 向上找到根节点，再从根节点启动同步渲染
+   * 对应源码: ReactFiberWorkLoop.js → scheduleUpdateOnFiber
    */
-  function scheduleUpdateOnFiber(fiber: FiberNode) {
-    const root = markUpdateFromFiberToRoot(fiber);
+  function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
+    const root = markUpdateFromFiberToRoot(fiber, lane);
     if (root) {
+      // 将 lane 记入 root.pendingLanes，表示"有待处理的更新"
+      root.pendingLanes = markRootUpdated(root.pendingLanes, lane);
       performWorkOnRoot(root);
     }
   }
 
   // 注入 scheduleUpdateOnFiber 到 fiberHooks，使 dispatchSetState 可以触发更新
-  setScheduleUpdateOnFiber(scheduleUpdateOnFiber);
+  setScheduleUpdateOnFiber((fiber: FiberNode, lane: Lane = SyncLane) => scheduleUpdateOnFiber(fiber, lane));
 
   /**
    * 从任意 fiber 节点沿 return 指针向上遍历，找到 FiberRootNode
-   * 更新可以从树中任意节点发起，但渲染必须从根节点开始，所以需要这个"寻根"过程
-   * React 源码中此函数还会沿途更新 childLanes，p-react 省略了 Lane 模型
+   * 同时沿路将本次更新的 lane 合并到每个祖先 fiber 的 childLanes 上，
+   * 使 bailout 优化可以通过 childLanes 快速判断子树是否有待处理更新
+   * 对应源码: ReactFiberWorkLoop.js → markUpdateFromFiberToRoot
    */
-  function markUpdateFromFiberToRoot(fiber: FiberNode): FiberRootNode | null {
+  function markUpdateFromFiberToRoot(fiber: FiberNode, lane: Lane): FiberRootNode | null {
+    // 将 lane 标记到触发更新的 fiber 自身
+    fiber.lanes = mergeLanes(fiber.lanes, lane);
+
     let node = fiber;
     while (node.return) {
+      // 沿路更新每个父节点的 childLanes（聚合子树所有待处理 Lane）
+      node.return.childLanes = mergeLanes(node.return.childLanes, lane);
       node = node.return;
     }
     if (node.tag === HostRoot) {
@@ -53,22 +64,51 @@ export function createWorkLoop(hostConfig: HostConfig) {
 
   /**
    * 同步渲染的完整流程，串联 render 阶段和 commit 阶段：
-   * 1. prepareFreshStack — 初始化 workInProgress 双缓冲树
-   * 2. workLoopSync — 深度优先遍历，构建完整的 wip 树
-   * 3. commitRoot — 将 wip 树的变更同步到真实 DOM
+   * 1. getNextLanes — 从 pendingLanes 中取出本次要处理的最高优先级 Lane
+   * 2. prepareFreshStack — 初始化 workInProgress 双缓冲树
+   * 3. workLoopSync — 深度优先遍历，构建完整的 wip 树
+   * 4. commitRoot — 将 wip 树的变更同步到真实 DOM
+   * 5. markRootFinished — 从 pendingLanes 中清除已完成的 Lane
+   * 对应源码: ReactFiberWorkLoop.js → performWorkOnRoot
    */
   function performWorkOnRoot(root: FiberRootNode) {
+    const nextLanes = getNextLanes(root.pendingLanes);
+    if (nextLanes === NoLanes) {
+      return;
+    }
+
+    // 打印本次渲染的 Lane 信息，帮助观察 Lane 模型行为
+    const laneName = getLaneName(nextLanes);
+    console.log(`[Lane] performWorkOnRoot: pendingLanes=0b${root.pendingLanes.toString(2).padStart(32, '0')}, nextLanes=${laneName}(0b${nextLanes.toString(2)})`);
+
     prepareFreshStack(root);
     workLoopSync();
 
     const finishedWork = root.current.alternate;
     if (finishedWork) {
       root.finishedWork = finishedWork;
+      root.finishedLanes = nextLanes;
       commitRoot(finishedWork, root.container);
       // 双缓冲切换：wip 树变为 current 树，下次更新时基于它创建新的 wip
       root.current = finishedWork;
+      // 从 pendingLanes 中移除本次已完成的 Lane
+      root.pendingLanes = markRootFinished(root.pendingLanes, nextLanes);
+      console.log(`[Lane] commit finished, pendingLanes after clear=0b${root.pendingLanes.toString(2).padStart(32, '0')}`);
       root.finishedWork = null;
+      root.finishedLanes = NoLanes;
     }
+  }
+
+  /**
+   * 将 Lane 位掩码转换为可读名称
+   */
+  function getLaneName(lane: Lane): string {
+    if (lane === SyncLane) return 'SyncLane';
+    if (lane === 0b00000000000000000000000000001000) return 'InputContinuousLane';
+    if (lane === 0b00000000000000000000000000100000) return 'DefaultLane';
+    if (lane === 0b00000000000000000000000100000000) return 'TransitionLane';
+    if (lane === 0b00100000000000000000000000000000) return 'IdleLane';
+    return 'UnknownLane';
   }
 
   /**
