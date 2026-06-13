@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p-react · 前端知识库</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    :root {
+      --sidebar-w: 260px;
+      --bg-base: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-overlay: #1c2128;
+      --border: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(124, 58, 237, 0.15);
+      --red: #f85149;
+      --red-glow: rgba(248, 81, 73, 0.12);
+      --yellow: #d29922;
+      --yellow-glow: rgba(210, 153, 34, 0.12);
+      --green: #3fb950;
+      --green-glow: rgba(63, 185, 80, 0.12);
+      --blue: #58a6ff;
+      --blue-glow: rgba(88, 166, 255, 0.12);
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-base);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-hexagon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+
+    .logo-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--blue);
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 12px 16px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+    }
+
+    .nav-item:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent-light);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 3px; bottom: 3px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .back-link:hover { color: var(--text-secondary); border-color: var(--text-secondary); background: var(--bg-overlay); }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-elevated); }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      height: 40px;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .content-header-icon { font-size: 12px; color: var(--text-muted); font-family: var(--font-code); }
+    .content-header-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .content-header-dot { color: var(--text-muted); font-size: 11px; }
+    .content-header-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .content-header-spacer { flex: 1; }
+
+    .content-header-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+    }
+
+    /* ── Article ── */
+    .article-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px 48px;
+    }
+
+    .article-wrapper::-webkit-scrollbar { width: 8px; }
+    .article-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .article-wrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+    .article-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    .article { display: none; }
+    .article.active { display: block; }
+
+    /* ── Article card ── */
+    .article-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .article-icon {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .article-meta { flex: 1; }
+
+    .article-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .article-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .tag-danger { color: var(--red); background: var(--red-glow); border: 1px solid rgba(248,81,73,0.25); }
+    .tag-warning { color: var(--yellow); background: var(--yellow-glow); border: 1px solid rgba(210,153,34,0.25); }
+    .tag-info { color: var(--blue); background: var(--blue-glow); border: 1px solid rgba(88,166,255,0.25); }
+    .tag-success { color: var(--green); background: var(--green-glow); border: 1px solid rgba(63,185,80,0.25); }
+    .tag-accent { color: var(--accent-light); background: var(--accent-glow); border: 1px solid rgba(124,58,237,0.3); }
+
+    .article-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+
+    /* ── Section blocks ── */
+    .section { margin-bottom: 28px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .section-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .section-body p { margin-bottom: 10px; }
+    .section-body p:last-child { margin-bottom: 0; }
+    .section-body strong { color: var(--text-primary); font-weight: 600; }
+    .section-body ul { padding-left: 20px; margin-bottom: 10px; }
+    .section-body li { margin-bottom: 4px; }
+
+    .section-body code {
+      font-family: var(--font-code);
+      font-size: 12px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--accent-light);
+    }
+
+    /* ── Code blocks ── */
+    .code-block-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .code-block-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: var(--bg-overlay);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-code);
+    }
+
+    .code-block-label-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-red { background: var(--red); }
+    .dot-green { background: var(--green); }
+    .dot-yellow { background: var(--yellow); }
+    .dot-blue { background: var(--blue); }
+
+    .code-block-label-text { color: var(--text-secondary); }
+
+    .code-block-wrap pre { margin: 0; padding: 16px 18px; background: var(--bg-base) !important; }
+    .code-block-wrap code {
+      font-family: var(--font-code) !important;
+      font-size: 12px !important;
+      line-height: 1.7 !important;
+    }
+    .code-block-wrap .hljs { background: var(--bg-base) !important; }
+
+    /* ── Rule box ── */
+    .rule-box {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border-left: 3px solid;
+      font-size: 13.5px;
+      line-height: 1.7;
+    }
+
+    .rule-box-danger {
+      background: var(--red-glow);
+      border-color: var(--red);
+      color: #ffa8a8;
+    }
+
+    .rule-box-warning {
+      background: var(--yellow-glow);
+      border-color: var(--yellow);
+      color: #f0c070;
+    }
+
+    .rule-box-info {
+      background: var(--blue-glow);
+      border-color: var(--blue);
+      color: #a0c8ff;
+    }
+
+    .rule-box-success {
+      background: var(--green-glow);
+      border-color: var(--green);
+      color: #90dca0;
+    }
+
+    .rule-box strong { color: inherit; font-weight: 700; }
+    .rule-box code {
+      font-family: var(--font-code);
+      font-size: 11.5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    /* ── Metrics table ── */
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .metrics-table thead tr { border-bottom: 1px solid var(--border); }
+    .metrics-table th {
+      text-align: left;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .metrics-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .metrics-table tr:last-child td { border-bottom: none; }
+    .metrics-table td:first-child {
+      font-family: var(--font-code);
+      font-size: 11.5px;
+      color: var(--accent-light);
+      white-space: nowrap;
+    }
+
+    /* ── Mobile ── */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .menu-toggle:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 99;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    @media (max-width: 700px) {
+      body { overflow: hidden; }
+      .menu-toggle { display: flex; }
+      .app { flex-direction: column; }
+
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 260px;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        height: 48px;
+        background: var(--bg-base);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .mobile-topbar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .content { height: calc(100vh - 48px); }
+      .article-wrapper { padding: 20px 16px 40px; }
+      .nav-item { padding: 11px 16px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app">
+  <!-- Mobile Topbar -->
+  <div class="mobile-topbar" id="mobile-topbar" style="display:none">
+    <button class="menu-toggle" id="menu-toggle-top" aria-label="打开菜单">☰</button>
+    <span class="mobile-topbar-title" id="mobile-topbar-title">前端知识库</span>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-el">
+    <div class="sidebar-logo">
+      <div class="logo-hexagon">p</div>
+      <span class="logo-text">p-react</span>
+      <span class="logo-badge">knowledge</span>
+      <div style="flex:1"></div>
+      <button class="menu-toggle" id="sidebar-close" aria-label="关闭菜单" style="display:none">✕</button>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <a class="back-link" href="hub.html">← 返回 Hub</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="content-header">
+      <span class="content-header-icon">📚</span>
+      <span class="content-header-label">前端知识库</span>
+      <span class="content-header-dot">·</span>
+      <span class="content-header-name" id="content-header-name">选择左侧条目</span>
+      <div class="content-header-spacer"></div>
+      <span class="content-header-badge" id="content-header-badge">性能优化</span>
+    </div>
+    <div class="article-wrapper" id="article-wrapper"></div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+const topics = [
+  {
+    id: 'reflow-repaint',
+    name: '重绘与回流',
+    group: '性能优化',
+    type: 'warning',
+    icon: '🎨',
+    tags: [
+      { label: 'Reflow', type: 'warning' },
+      { label: 'Repaint', type: 'info' },
+      { label: '渲染原理', type: 'info' },
+    ],
+  },
+  {
+    id: 'composite-layer',
+    name: '合成层与 GPU 加速',
+    group: '性能优化',
+    type: 'info',
+    icon: '🖥️',
+    tags: [
+      { label: 'GPU', type: 'info' },
+      { label: 'will-change', type: 'accent' },
+      { label: '合成层', type: 'info' },
+    ],
+  },
+  {
+    id: 'web-vitals',
+    name: 'Web Vitals',
+    group: '性能优化',
+    type: 'success',
+    icon: '📊',
+    tags: [
+      { label: 'LCP', type: 'warning' },
+      { label: 'CLS', type: 'info' },
+      { label: 'INP', type: 'success' },
+      { label: 'Core Web Vitals', type: 'success' },
+    ],
+  },
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function escHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function tagsHtml(tags) {
+  return tags.map(t => `<span class="tag tag-${escHtml(t.type)}">${escHtml(t.label)}</span>`).join('');
+}
+
+function codeBlock(label, dotClass, lang, code) {
+  return `
+    <div class="code-block-wrap">
+      <div class="code-block-label">
+        <span class="code-block-label-dot ${dotClass}"></span>
+        <span class="code-block-label-text">${label}</span>
+      </div>
+      <pre><code class="language-${lang}">${escHtml(code)}</code></pre>
+    </div>`;
+}
+
+function ruleBox(type, html) {
+  return `<div class="rule-box rule-box-${type}">${html}</div>`;
+}
+
+function section(title, bodyHtml) {
+  return `
+    <div class="section">
+      <div class="section-title">${title}</div>
+      <div class="section-body">${bodyHtml}</div>
+    </div>`;
+}
+
+function articleShell(t, innerHtml) {
+  return `
+    <div class="article-header">
+      <div class="article-icon">${t.icon}</div>
+      <div class="article-meta">
+        <div class="article-title">${t.name}</div>
+        <div class="article-tags">${tagsHtml(t.tags)}</div>
+      </div>
+    </div>
+    <div class="article-divider"></div>
+    ${innerHtml}`;
+}
+
+// ── Renderers ─────────────────────────────────────────────────────────────────
+
+function renderReflowRepaint(t) {
+  const question = ruleBox('info',
+    `<strong>结论：</strong>回流（Reflow）触发几何重新计算，代价远高于重绘（Repaint）。
+    读写 DOM 几何属性（<code>offsetWidth</code>、<code>scrollTop</code>）会强制同步触发回流，
+    称为 <strong>强制同步布局（Forced Synchronous Layout）</strong>，是性能杀手。`);
+
+  const principle = `
+    <p>浏览器渲染流水线：<strong>Style → Layout → Paint → Composite</strong>。</p>
+    <p><strong>回流（Reflow / Layout）</strong>：元素的几何属性（尺寸、位置）发生变化，浏览器需要重新计算所有受影响节点的几何信息，并重建渲染树的布局。由于浏览器的布局是流式的，一个节点的变化可能级联影响大量祖先和兄弟节点，代价极高。</p>
+    <p><strong>重绘（Repaint）</strong>：仅外观属性（颜色、背景、阴影）变化，跳过 Layout 阶段，直接进入 Paint。代价低于回流，但仍需重新光栅化受影响区域。</p>
+    <p><strong>合成（Composite）</strong>：若变更的属性只影响合成层（<code>transform</code>、<code>opacity</code>），则完全跳过 Layout 和 Paint，仅由 GPU 合成，代价最低。</p>`;
+
+  const triggerList = `
+    <p><strong>常见回流触发场景：</strong></p>
+    <ul>
+      <li>读取几何属性：<code>offsetWidth/Height</code>、<code>clientWidth/Height</code>、<code>scrollTop/Left</code>、<code>getBoundingClientRect()</code></li>
+      <li>修改几何属性：<code>width</code>、<code>height</code>、<code>margin</code>、<code>padding</code>、<code>border</code>、<code>top/left</code></li>
+      <li>DOM 结构变更：增删节点、改变 <code>display</code></li>
+      <li>字体大小、窗口 resize</li>
+    </ul>
+    <p><strong>仅触发重绘的属性：</strong><code>color</code>、<code>background-color</code>、<code>box-shadow</code>、<code>border-radius</code>（不影响尺寸时）、<code>outline</code>、<code>visibility</code>。</p>`;
+
+  const badCode = `// ✗ 在循环中交替读写，每次读操作强制触发同步布局
+const items = document.querySelectorAll('.item');
+for (let i = 0; i < items.length; i++) {
+  const width = items[i].offsetWidth; // 读：强制 Layout
+  items[i].style.width = width + 10 + 'px'; // 写：使布局失效
+  // 下次循环的读操作又强制 Layout，N 次循环 = N 次回流
+}`;
+
+  const goodCode = `// ✓ 先批量读，再批量写（读写分离）
+const items = document.querySelectorAll('.item');
+const widths = Array.from(items).map(el => el.offsetWidth); // 批量读（1 次布局）
+items.forEach((el, i) => {
+  el.style.width = widths[i] + 10 + 'px'; // 批量写（合并为 1 次布局）
+});
+
+// ✓ 使用 requestAnimationFrame 将写操作推迟到下一帧
+function updateLayout() {
+  requestAnimationFrame(() => {
+    items.forEach(el => {
+      el.style.transform = 'translateX(10px)'; // 仅触发合成，跳过 Layout/Paint
+    });
+  });
+}
+
+// ✓ 操作离线 DOM：DocumentFragment 或 display:none 后批量修改
+const frag = document.createDocumentFragment();
+data.forEach(item => {
+  const el = document.createElement('li');
+  el.textContent = item.name;
+  frag.appendChild(el); // 操作在内存中，不触发回流
+});
+list.appendChild(frag); // 一次性插入，只触发 1 次回流`;
+
+  const notes = [
+    ruleBox('warning', `<strong>FastDOM：</strong>大型项目可引入 <code>fastdom</code> 库，它将所有读操作排入 <code>measure</code> 队列、写操作排入 <code>mutate</code> 队列，在每帧内自动按"先读后写"顺序执行，彻底消除强制同步布局。`),
+    ruleBox('info', `<strong>Chrome DevTools 验证：</strong>Performance 面板录制后，在 Main 线程火焰图中查找紫色的 "Layout" 块。若看到大量密集的 Layout 事件，即表明存在过度回流。Timeline 中标红的 "Recalculate Style" 也需关注。`),
+    ruleBox('success', `<strong>CSS 优化替代方案：</strong>位移动画优先用 <code>transform: translateX()</code> 而非修改 <code>left/top</code>；显隐切换用 <code>opacity: 0</code> + <code>pointer-events: none</code> 而非 <code>display: none</code>（前者不触发回流）；<code>will-change: transform</code> 提前将元素提升为合成层。`),
+  ];
+
+  return articleShell(t, `
+    ${section('核心问题', question)}
+    ${section('原理剖析', principle + triggerList)}
+    ${section('代码示例', codeBlock('✗ 强制同步布局（错误）', 'dot-red', 'javascript', badCode) + codeBlock('✓ 读写分离 + 合成层优化（正确）', 'dot-green', 'javascript', goodCode))}
+    ${section('延伸与注意事项', notes.join(''))}`);
+}
+
+function renderCompositeLayer(t) {
+  const question = ruleBox('info',
+    `<strong>结论：</strong>浏览器将页面拆分为若干「合成层」，每层由 GPU 独立光栅化并缓存为纹理。
+    动画只需移动/缩放纹理，完全绕过 CPU 的 Layout 和 Paint，实现 <strong>60fps 流畅动画</strong>。
+    <code>will-change: transform</code> 和 <code>transform: translateZ(0)</code> 均可将元素提升为独立合成层。`);
+
+  const principle = `
+    <p>渲染流水线的最后一步是 <strong>Composite（合成）</strong>。主线程将页面划分为多个层（Layer），传递给合成线程（Compositor Thread），合成线程再交由 GPU 合成最终画面。</p>
+    <p>关键点：<strong>合成线程运行在独立于主线程之外</strong>，即使主线程被 JavaScript 阻塞，合成动画依然流畅。这就是为什么 <code>transform</code>/<code>opacity</code> 动画不会被 JS 卡顿影响。</p>
+    <p><strong>层提升（Layer Promotion）触发条件：</strong></p>
+    <ul>
+      <li><code>will-change: transform | opacity | left | top</code></li>
+      <li><code>transform: translateZ(0)</code> 或 <code>translate3d(0,0,0)</code>（hack 写法，不推荐）</li>
+      <li>CSS 动画/过渡中含有 <code>transform</code> 或 <code>opacity</code></li>
+      <li><code>&lt;video&gt;</code>、<code>&lt;canvas&gt;</code>、<code>&lt;iframe&gt;</code> 元素</li>
+      <li><code>position: fixed</code> 元素</li>
+      <li>有 <code>z-index</code> 且兄弟节点是合成层时（层爆炸来源）</li>
+    </ul>`;
+
+  const badCode = `/* ✗ 使用 left/top 做位移动画
+   每帧触发 Layout + Paint，主线程繁忙时掉帧 */
+.ball {
+  position: absolute;
+  left: 0;
+  transition: left 0.3s ease;
+}
+.ball.moved {
+  left: 200px; /* 回流 → 重绘 → 合成，三步全走 */
+}
+
+/* ✗ 动画结束后遗忘 will-change，持续占用 GPU 内存 */
+.card {
+  will-change: transform; /* 页面上所有 .card 全部提升，内存爆炸 */
+}`;
+
+  const goodCode = `/* ✓ 用 transform 替代 left/top
+   仅触发 Composite，跳过 Layout 和 Paint */
+.ball {
+  position: absolute;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+  will-change: transform; /* 提前提升，避免第一帧重绘 */
+}
+.ball.moved {
+  transform: translateX(200px); /* 仅合成 */
+}
+
+/* ✓ 动态加 will-change，动画结束后移除，避免内存浪费 */
+el.addEventListener('mouseenter', () => {
+  el.style.willChange = 'transform';
+});
+el.addEventListener('animationend', () => {
+  el.style.willChange = 'auto'; // 释放 GPU 纹理缓存
+});
+
+/* ✓ opacity 动画也走合成层，淡入淡出不卡顿 */
+.fade {
+  opacity: 1;
+  transition: opacity 0.25s;
+  will-change: opacity;
+}
+.fade.hidden { opacity: 0; }`;
+
+  const notes = [
+    ruleBox('warning', `<strong>层爆炸（Layer Explosion）：</strong>若一个低 z-index 的兄弟元素是合成层，浏览器会将其上方所有重叠元素都提升为合成层（层叠上下文规则），导致内存急剧膨胀。用 Chrome DevTools → Layers 面板检查层数量，正常页面合成层不应超过几十个。`),
+    ruleBox('info', `<strong>Chrome DevTools 检查方法：</strong>① Rendering 面板 → "Layer borders" 用橙线标出合成层边界；② Layers 面板查看每层内存占用；③ Performance 面板的 GPU 内存图表。`),
+    ruleBox('success', `<strong>只有两个属性完全跳过 Layout 和 Paint：</strong><code>transform</code> 和 <code>opacity</code>。<code>filter</code> 部分情况下也走合成层（取决于浏览器实现）。其余所有 CSS 属性至少触发 Paint，几何属性触发 Layout。`),
+  ];
+
+  return articleShell(t, `
+    ${section('核心问题', question)}
+    ${section('原理剖析', principle)}
+    ${section('代码示例', codeBlock('✗ left/top 动画（触发回流）', 'dot-red', 'css', badCode) + codeBlock('✓ transform + will-change（仅合成）', 'dot-green', 'css', goodCode))}
+    ${section('延伸与注意事项', notes.join(''))}`);
+}
+
+function renderWebVitals(t) {
+  const question = ruleBox('info',
+    `<strong>结论：</strong>Google 将 Web Vitals 定为搜索排名因素。核心三项：
+    <strong>LCP</strong>（最大内容绘制，衡量加载速度）、
+    <strong>CLS</strong>（累积布局偏移，衡量视觉稳定性）、
+    <strong>INP</strong>（交互到下一帧绘制，2024 年取代 FID，衡量响应速度）。
+    优秀阈值：LCP &lt; 2.5s、CLS &lt; 0.1、INP &lt; 200ms。`);
+
+  const metricsTable = `
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>指标</th>
+          <th>全称</th>
+          <th>衡量什么</th>
+          <th>优秀 / 需改进 / 差</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>LCP</td>
+          <td>Largest Contentful Paint</td>
+          <td>视口内最大内容元素（图片/文本块）完成渲染的时间，代表用户「感知加载完成」的时刻</td>
+          <td>&lt; 2.5s / 2.5-4s / &gt; 4s</td>
+        </tr>
+        <tr>
+          <td>CLS</td>
+          <td>Cumulative Layout Shift</td>
+          <td>页面生命周期内所有意外布局偏移分数之和。图片无尺寸、异步注入内容都会导致 CLS 升高</td>
+          <td>&lt; 0.1 / 0.1-0.25 / &gt; 0.25</td>
+        </tr>
+        <tr>
+          <td>INP</td>
+          <td>Interaction to Next Paint</td>
+          <td>用户交互（点击/键盘/触摸）到下一帧渲染完成的延迟，取所有交互的第 98 百分位值</td>
+          <td>&lt; 200ms / 200-500ms / &gt; 500ms</td>
+        </tr>
+        <tr>
+          <td>FCP</td>
+          <td>First Contentful Paint</td>
+          <td>首次渲染任意内容（文字/图片/SVG）的时间，辅助指标，非核心</td>
+          <td>&lt; 1.8s / 1.8-3s / &gt; 3s</td>
+        </tr>
+        <tr>
+          <td>TTFB</td>
+          <td>Time to First Byte</td>
+          <td>从请求发出到收到第一个字节的时间，反映服务端响应速度，影响所有后续指标</td>
+          <td>&lt; 800ms / 800ms-1.8s / &gt; 1.8s</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const measureCode = `// 使用官方 web-vitals 库采集（推荐）
+import { onLCP, onCLS, onINP } from 'web-vitals';
+
+onLCP(metric => {
+  console.log('LCP:', metric.value, 'ms');
+  // metric.entries 包含触发 LCP 的具体元素
+  sendToAnalytics({ name: 'LCP', value: metric.value });
+});
+
+onCLS(metric => {
+  console.log('CLS:', metric.value);
+  // metric.entries 列出每次布局偏移的来源元素
+});
+
+onINP(metric => {
+  console.log('INP:', metric.value, 'ms');
+  // metric.entries[0].target 指向触发交互的 DOM 元素
+});`;
+
+  const optimizeCode = `// ── 优化 LCP ──────────────────────────────────────────────────────
+// ✗ 关键图片未 preload，LCP 元素等待发现后才开始下载
+// ✓ 在 <head> 中预加载 LCP 元素
+// <link rel="preload" as="image" href="/hero.webp" fetchpriority="high">
+
+// ✓ 给 LCP 图片设置高优先级（Chrome 102+）
+const heroImg = document.querySelector('.hero-image');
+heroImg.fetchPriority = 'high';
+
+// ── 优化 CLS ──────────────────────────────────────────────────────
+// ✗ 图片无尺寸，加载后撑开布局
+// <img src="photo.jpg">
+
+// ✓ 始终为图片/视频指定 width 和 height，或用 aspect-ratio 占位
+// <img src="photo.jpg" width="800" height="600">
+// CSS: img { aspect-ratio: 4/3; width: 100%; }
+
+// ✓ 动态内容（广告、异步组件）使用固定高度容器占位
+// .ad-slot { min-height: 250px; } /* 防止广告加载后推移内容 */
+
+// ── 优化 INP ──────────────────────────────────────────────────────
+// ✗ 点击事件处理器中有大量同步计算，阻塞主线程
+button.addEventListener('click', () => {
+  heavyComputation(); // 阻塞主线程 > 200ms
+  updateDOM();
+});
+
+// ✓ 将耗时工作推迟到 scheduler 或 Web Worker
+button.addEventListener('click', () => {
+  updateDOMImmediately(); // 先响应视觉反馈
+  scheduler.postTask(() => heavyComputation(), { priority: 'background' });
+});`;
+
+  const notes = [
+    ruleBox('warning', `<strong>LCP 常见元凶：</strong>未压缩的大图（用 WebP/AVIF）、render-blocking 的 CSS/字体（用 <code>font-display: swap</code>）、服务端响应慢（用 CDN + Edge Cache）、未预加载的关键资源（用 <code>&lt;link rel="preload"&gt;</code>）。`),
+    ruleBox('info', `<strong>CLS 隐形来源：</strong>Web 字体的 FOUT（无样式文本闪烁）会导致文本重排，引发 CLS。解决方案：<code>font-display: optional</code>（完全避免重排）或 <code>size-adjust</code> + <code>ascent-override</code> 让备用字体尺寸与 Web 字体一致。`),
+    ruleBox('success', `<strong>测量工具：</strong>① Chrome DevTools → Lighthouse（实验室数据）；② PageSpeed Insights（实际用户数据 + 实验室数据）；③ Search Console → Core Web Vitals 报告（28天真实用户聚合）；④ <code>web-vitals</code> npm 包（自采集上报到自有监控平台）。`),
+  ];
+
+  return articleShell(t, `
+    ${section('核心问题', question)}
+    ${section('原理剖析 — 五大指标速览', metricsTable)}
+    ${section('代码示例', codeBlock('采集 Web Vitals', 'dot-blue', 'javascript', measureCode) + codeBlock('✓ 优化 LCP / CLS / INP', 'dot-green', 'javascript', optimizeCode))}
+    ${section('延伸与注意事项', notes.join(''))}`);
+}
+
+// ── Render engine ─────────────────────────────────────────────────────────────
+
+const renderers = {
+  'reflow-repaint': renderReflowRepaint,
+  'composite-layer': renderCompositeLayer,
+  'web-vitals': renderWebVitals,
+};
+
+function renderArticle(t) {
+  const el = document.createElement('div');
+  el.className = 'article';
+  el.id = 'article-' + t.id;
+  const fn = renderers[t.id];
+  if (!fn) { console.warn('No renderer for topic:', t.id); return; }
+  el.innerHTML = fn(t);
+  document.getElementById('article-wrapper').appendChild(el);
+}
+
+// ── Build sidebar nav ─────────────────────────────────────────────────────────
+
+const typeIcon = {
+  warning: '🟡',
+  info: '🔵',
+  success: '🟢',
+  danger: '🔴',
+  accent: '🟣',
+};
+
+const sidebarNav = document.getElementById('sidebar-nav');
+const groups = [...new Set(topics.map(t => t.group))];
+
+groups.forEach(group => {
+  const groupEl = document.createElement('div');
+  groupEl.className = 'nav-group';
+
+  const label = document.createElement('div');
+  label.className = 'nav-group-label';
+  label.textContent = group;
+  groupEl.appendChild(label);
+
+  topics.filter(t => t.group === group).forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'nav-item';
+    item.dataset.id = t.id;
+    item.innerHTML = `<span class="nav-item-icon">${t.icon}</span>${t.name}`;
+    item.addEventListener('click', () => selectTopic(t.id));
+    groupEl.appendChild(item);
+  });
+
+  sidebarNav.appendChild(groupEl);
+});
+
+// ── Render all articles ───────────────────────────────────────────────────────
+
+topics.forEach(renderArticle);
+document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+function selectTopic(id) {
+  const t = topics.find(x => x.id === id);
+  if (!t) return;
+
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === id));
+  document.querySelectorAll('.article').forEach(el =>
+    el.classList.toggle('active', el.id === 'article-' + id));
+
+  document.getElementById('content-header-name').textContent = t.name;
+  document.getElementById('mobile-topbar-title').textContent = t.name;
+  document.getElementById('article-wrapper').scrollTop = 0;
+  closeSidebar();
+}
+
+// ── Mobile sidebar ────────────────────────────────────────────────────────────
+
+const sidebarEl = document.getElementById('sidebar-el');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const mobileTopbar = document.getElementById('mobile-topbar');
+const menuToggleTop = document.getElementById('menu-toggle-top');
+const sidebarClose = document.getElementById('sidebar-close');
+const mq = window.matchMedia('(max-width: 700px)');
+
+function openSidebar()  { sidebarEl.classList.add('open');    sidebarOverlay.classList.add('visible'); }
+function closeSidebar() { sidebarEl.classList.remove('open'); sidebarOverlay.classList.remove('visible'); }
+
+menuToggleTop.addEventListener('click', openSidebar);
+sidebarClose.addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+function applyMobileLayout(isMobile) {
+  mobileTopbar.style.display = isMobile ? 'flex' : 'none';
+  sidebarClose.style.display = isMobile ? 'flex' : 'none';
+  if (!isMobile) closeSidebar();
+}
+
+mq.addEventListener('change', e => applyMobileLayout(e.matches));
+applyMobileLayout(mq.matches);
+
+// Init: select first topic
+selectTopic(topics[0].id);
+</script>
+</body>
+</html>

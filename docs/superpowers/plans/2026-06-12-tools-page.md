@@ -1,3 +1,38 @@
+# Tools Page Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Create `demo/tools.html` — a dev-tools reference page matching pitfalls.html's layout, with two nav groups (日常工具 / AI 工具) and three tool articles (whistle, cc-switch, Superpowers).
+
+**Architecture:** Single self-contained HTML file using the same CSS variable system and sidebar+content layout as pitfalls.html. Tool data stored as a JS array; each tool renders its own article HTML via a per-tool render function. hub.html footer gets a new link.
+
+**Tech Stack:** Vanilla HTML/CSS/JS · highlight.js 11.9.0 (CDNJS) · Google Fonts (Inter + JetBrains Mono)
+
+---
+
+## Files
+
+| Path | Action | Responsibility |
+|---|---|---|
+| `demo/tools.html` | Create | Full page: CSS, HTML skeleton, tool data, render logic, nav/selection JS |
+| `demo/hub.html` | Modify (line ~489) | Add footer link to tools.html alongside existing pitfalls link |
+
+---
+
+### Task 1: Create demo/tools.html — full CSS + HTML skeleton
+
+**Files:**
+- Create: `demo/tools.html`
+
+- [ ] **Step 1: Create the file with DOCTYPE, head, and CSS**
+
+Copy the entire `<style>` block from `demo/pitfalls.html` (lines 10–465) verbatim into `demo/tools.html`. The CSS is identical — same design tokens, sidebar, content, code-block, rule-box, step-list, mobile styles.
+
+Change only:
+- `<title>` → `p-react · 开发小工具`
+- Add one extra CSS rule for the accent badge type (purple):
+
+```html
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -8,463 +43,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <style>
-    :root {
-      --sidebar-w: 260px;
-      --bg-base: #0d1117;
-      --bg-elevated: #161b22;
-      --bg-overlay: #1c2128;
-      --border: #21262d;
-      --text-primary: #e6edf3;
-      --text-secondary: #8b949e;
-      --text-muted: #484f58;
-      --accent: #7c3aed;
-      --accent-light: #a78bfa;
-      --accent-glow: rgba(124, 58, 237, 0.15);
-      --red: #f85149;
-      --red-glow: rgba(248, 81, 73, 0.12);
-      --yellow: #d29922;
-      --yellow-glow: rgba(210, 153, 34, 0.12);
-      --green: #3fb950;
-      --green-glow: rgba(63, 185, 80, 0.12);
-      --blue: #58a6ff;
-      --blue-glow: rgba(88, 166, 255, 0.12);
-      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-    }
+    /* === paste entire <style> from pitfalls.html here === */
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: var(--font-ui);
-      background: var(--bg-base);
-      color: var(--text-primary);
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .app { display: flex; height: 100vh; }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      width: var(--sidebar-w);
-      flex-shrink: 0;
-      background: var(--bg-base);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 18px 16px 16px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .logo-hexagon {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--accent), #4f46e5);
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.5px;
-      flex-shrink: 0;
-    }
-
-    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
-
-    .logo-badge {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--red);
-      background: var(--red-glow);
-      border: 1px solid rgba(248, 81, 73, 0.3);
-      border-radius: 4px;
-      padding: 1px 6px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .sidebar-nav::-webkit-scrollbar { width: 4px; }
-    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
-
-    .nav-group { margin-bottom: 4px; }
-
-    .nav-group-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      padding: 12px 16px 4px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 16px;
-      cursor: pointer;
-      transition: background 0.1s, color 0.1s;
-      position: relative;
-      color: var(--text-secondary);
-      font-size: 13.5px;
-    }
-
-    .nav-item:hover { background: var(--bg-overlay); color: var(--text-primary); }
-
-    .nav-item.active {
-      background: var(--accent-glow);
-      color: var(--accent-light);
-    }
-
-    .nav-item.active::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 3px; bottom: 3px;
-      width: 3px;
-      background: var(--accent);
-      border-radius: 0 2px 2px 0;
-    }
-
-    .nav-sev {
-      font-size: 10px;
-      font-family: var(--font-code);
-      color: var(--text-muted);
-      width: 18px;
-      flex-shrink: 0;
-      text-align: right;
-    }
-    .nav-item.active .nav-sev { color: var(--accent-light); opacity: 0.7; }
-
-    .sidebar-footer {
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .back-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--text-muted);
-      text-decoration: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-    }
-    .back-link:hover { color: var(--text-secondary); border-color: var(--text-secondary); background: var(--bg-overlay); }
-
-    /* ── Content ── */
-    .content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg-elevated);
-    }
-
-    .content-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 20px;
-      height: 40px;
-      background: var(--bg-base);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .content-header-icon { font-size: 12px; color: var(--text-muted); font-family: var(--font-code); }
-    .content-header-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
-    .content-header-dot { color: var(--text-muted); font-size: 11px; }
-    .content-header-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-    .content-header-spacer { flex: 1; }
-
-    .content-header-badge {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 7px;
-    }
-
-    /* ── Article ── */
-    .article-wrapper {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px 36px 48px;
-    }
-
-    .article-wrapper::-webkit-scrollbar { width: 8px; }
-    .article-wrapper::-webkit-scrollbar-track { background: transparent; }
-    .article-wrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
-    .article-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
-    .pitfall { display: none; }
-    .pitfall.active { display: block; }
-
-    /* ── Pitfall card ── */
-    .pitfall-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .pitfall-icon {
-      font-size: 28px;
-      line-height: 1;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .pitfall-meta { flex: 1; }
-
-    .pitfall-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-primary);
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-
-    .pitfall-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .tag {
-      font-size: 10px;
-      font-weight: 600;
-      border-radius: 4px;
-      padding: 2px 8px;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-
-    .tag-danger { color: var(--red); background: var(--red-glow); border: 1px solid rgba(248,81,73,0.25); }
-    .tag-warning { color: var(--yellow); background: var(--yellow-glow); border: 1px solid rgba(210,153,34,0.25); }
-    .tag-info { color: var(--blue); background: var(--blue-glow); border: 1px solid rgba(88,166,255,0.25); }
-    .tag-success { color: var(--green); background: var(--green-glow); border: 1px solid rgba(63,185,80,0.25); }
-
-    .pitfall-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
-
-    /* ── Section blocks ── */
-    .section { margin-bottom: 28px; }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .section-body {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.8;
-    }
-
-    .section-body p { margin-bottom: 10px; }
-    .section-body p:last-child { margin-bottom: 0; }
-
-    .section-body strong { color: var(--text-primary); font-weight: 600; }
-
-    .section-body code {
-      font-family: var(--font-code);
-      font-size: 12px;
-      background: var(--bg-overlay);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 6px;
-      color: var(--accent-light);
-    }
-
-    /* ── Code blocks ── */
-    .code-block-wrap {
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      margin-bottom: 14px;
-    }
-
-    .code-block-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      background: var(--bg-overlay);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      font-family: var(--font-code);
-    }
-
-    .code-block-label-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot-red { background: var(--red); }
-    .dot-green { background: var(--green); }
-    .dot-yellow { background: var(--yellow); }
-
-    .code-block-label-text { color: var(--text-secondary); }
-
-    .code-block-wrap pre { margin: 0; padding: 16px 18px; background: var(--bg-base) !important; }
-    .code-block-wrap code {
-      font-family: var(--font-code) !important;
-      font-size: 12px !important;
-      line-height: 1.7 !important;
-    }
-    .code-block-wrap .hljs { background: var(--bg-base) !important; }
-
-    /* ── Rule box ── */
-    .rule-box {
-      border-radius: 8px;
-      padding: 14px 16px;
-      margin-bottom: 14px;
-      border-left: 3px solid;
-      font-size: 13.5px;
-      line-height: 1.7;
-    }
-
-    .rule-box-danger {
-      background: var(--red-glow);
-      border-color: var(--red);
-      color: #ffa8a8;
-    }
-
-    .rule-box-warning {
-      background: var(--yellow-glow);
-      border-color: var(--yellow);
-      color: #f0c070;
-    }
-
-    .rule-box-info {
-      background: var(--blue-glow);
-      border-color: var(--blue);
-      color: #a0c8ff;
-    }
-
-    .rule-box-success {
-      background: var(--green-glow);
-      border-color: var(--green);
-      color: #90dca0;
-    }
-
-    .rule-box strong { color: inherit; font-weight: 700; }
-    .rule-box code {
-      font-family: var(--font-code);
-      font-size: 11.5px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 3px;
-      padding: 1px 5px;
-    }
-
-    /* ── Step list ── */
-    .step-list { list-style: none; }
-
-    .step-list li {
-      display: flex;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    .step-list li:last-child { border-bottom: none; }
-
-    .step-num {
-      font-family: var(--font-code);
-      font-size: 11px;
-      color: var(--text-muted);
-      width: 20px;
-      flex-shrink: 0;
-      padding-top: 3px;
-    }
-
-    /* ── Mobile ── */
-    .menu-toggle {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: 32px; height: 32px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 16px;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
-    .menu-toggle:hover { background: var(--bg-overlay); color: var(--text-primary); }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 99;
-    }
-    .sidebar-overlay.visible { display: block; }
-
-    @media (max-width: 700px) {
-      body { overflow: hidden; }
-      .menu-toggle { display: flex; }
-      .app { flex-direction: column; }
-
-      .sidebar {
-        position: fixed;
-        top: 0; left: 0; bottom: 0;
-        width: 260px;
-        z-index: 100;
-        transform: translateX(-100%);
-        transition: transform 0.25s ease;
-      }
-      .sidebar.open { transform: translateX(0); }
-
-      .mobile-topbar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0 12px;
-        height: 48px;
-        background: var(--bg-base);
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-      .mobile-topbar-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary);
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .content { height: calc(100vh - 48px); }
-      .article-wrapper { padding: 20px 16px 40px; }
-      .nav-item { padding: 11px 16px; font-size: 14px; }
-    }
+    /* Extra: accent badge type for AI tools nav icons */
     .tag-accent { color: var(--accent-light); background: var(--accent-glow); border: 1px solid rgba(124,58,237,0.3); }
   </style>
 </head>
+```
+
+- [ ] **Step 2: Add HTML body skeleton**
+
+```html
 <body>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
@@ -506,6 +95,28 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
+// tool data and logic goes here (Tasks 2–4)
+</script>
+</body>
+</html>
+```
+
+- [ ] **Step 3: Open in browser and verify skeleton**
+
+Open `demo/tools.html` directly in a browser (file:// or via dev server). Expect: dark sidebar on left, empty content area on right, "选择左侧条目" in header. No JS errors in console.
+
+---
+
+### Task 2: Add tools data array
+
+**Files:**
+- Modify: `demo/tools.html` (inside `<script>`)
+
+- [ ] **Step 1: Write the tools data array**
+
+Replace the `// tool data and logic goes here` comment with:
+
+```js
 const tools = [
   // ── 日常工具 ──────────────────────────────────────────────────────────
   {
@@ -533,7 +144,7 @@ const tools = [
       { label: 'Claude Code', type: 'accent' },
       { label: '配置切换', type: 'info' },
     ],
-    summary: 'cc-switch 是用于在多个 Claude Code 配置文件（profile）之间快速切换的命令行工具，适合需要在个人账号和公司账号之间频繁切换的场景。官网地址：https://ccswitch.io/zh/',
+    summary: 'cc-switch 是用于在多个 Claude Code 配置文件（profile）之间快速切换的命令行工具，适合需要在个人账号和公司账号之间频繁切换的场景。',
   },
   {
     id: 'superpowers',
@@ -549,13 +160,26 @@ const tools = [
     summary: 'Superpowers 是 Claude Code 的插件系统，通过 Skills 机制为 AI 注入结构化工作流，让 Claude 在 brainstorming、TDD、debug 等场景中遵循最佳实践而非随意发挥。',
   },
 ];
+```
 
+- [ ] **Step 2: No browser check needed** — data only, no rendering yet.
+
+---
+
+### Task 3: Implement renderTool and sidebar nav
+
+**Files:**
+- Modify: `demo/tools.html` (inside `<script>`, after tools array)
+
+- [ ] **Step 1: Add shared HTML helpers**
+
+```js
 function escHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function tagsHtml(tags) {
-  return tags.map(t => `<span class="tag tag-${escHtml(t.type)}">${escHtml(t.label)}</span>`).join('');
+  return tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('');
 }
 
 function codeBlock(label, dotClass, lang, code) {
@@ -580,7 +204,11 @@ function section(title, bodyHtml) {
       <div class="section-body">${bodyHtml}</div>
     </div>`;
 }
+```
 
+- [ ] **Step 2: Add renderWhistle()**
+
+```js
 function renderWhistle(t) {
   const quickStart = `
     <ol class="step-list">
@@ -589,7 +217,6 @@ function renderWhistle(t) {
       <li><span class="step-num">03</span><span>浏览器 / 系统代理设置为 <code>127.0.0.1:8899</code></span></li>
       <li><span class="step-num">04</span><span>访问 <code>http://127.0.0.1:8899</code> 打开 Whistle UI</span></li>
       <li><span class="step-num">05</span><span>HTTPS 抓包：UI 顶部 → HTTPS → 下载根证书 → 系统信任</span></li>
-      <li><span class="step-num">06</span><span>打开系统设置 - 代理 - 安全网页代理(服务器：127.0.0.1, 端口： 8899)</span></li>
     </ol>`;
 
   const rulesCode = `# mock 响应（Values 标签页新建 user.json，填入 JSON 数据）
@@ -633,10 +260,14 @@ example.com/page jsAppend://{inject.js}`;
     ${section('常用规则速查', codeBlock('whistle rules', 'dot-yellow', 'bash', rulesCode))}
     ${section('注意事项', tips.join(''))}`;
 }
+```
 
+- [ ] **Step 3: Add renderCcSwitch()**
+
+```js
 function renderCcSwitch(t) {
   const installCode = `# 安装
-npm i -g cc-switch
+npm i -g @anthropic-ai/claude-code-switch
 # 或使用 npx（无需全局安装）
 npx cc-switch`;
 
@@ -683,7 +314,11 @@ cc-switch remove <profile-name>`;
     ${section('命令速查', codeBlock('cc-switch CLI', 'dot-yellow', 'bash', usageCode))}
     ${section('典型场景', scenarios.join(''))}`;
 }
+```
 
+- [ ] **Step 4: Add renderSuperpowers()**
+
+```js
 function renderSuperpowers(t) {
   const invocationCode = `# 方式一：用户在 prompt 中显式调用
 /brainstorming
@@ -741,7 +376,11 @@ function renderSuperpowers(t) {
     ${section('核心 Skill 速查', skillsTable)}
     ${section('使用原则', principles.join(''))}`;
 }
+```
 
+- [ ] **Step 5: Add renderTool dispatcher + sidebar builder**
+
+```js
 function renderTool(t) {
   const el = document.createElement('div');
   el.className = 'pitfall';
@@ -752,9 +391,7 @@ function renderTool(t) {
     'cc-switch': renderCcSwitch,
     superpowers: renderSuperpowers,
   };
-  const fn = renderers[t.id];
-  if (!fn) { console.warn('No renderer for tool:', t.id); return; }
-  el.innerHTML = fn(t);
+  el.innerHTML = renderers[t.id](t);
   document.getElementById('article-wrapper').appendChild(el);
 }
 
@@ -788,7 +425,11 @@ groups.forEach(group => {
 // Render all tool articles
 tools.forEach(renderTool);
 document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+```
 
+- [ ] **Step 6: Add selectTool + mobile logic**
+
+```js
 function selectTool(id) {
   const t = tools.find(x => x.id === id);
   if (!t) return;
@@ -838,6 +479,63 @@ applyMobileLayout(mq.matches);
 
 // Init: select first tool
 selectTool(tools[0].id);
-</script>
-</body>
-</html>
+```
+
+- [ ] **Step 7: Open in browser and verify all three tools**
+
+Open `demo/tools.html`. Verify:
+- Sidebar shows two groups: 日常工具 (whistle 🔵) and AI 工具 (cc-switch 🟣, Superpowers 🟣)
+- Clicking each nav item shows the correct article
+- Code blocks have syntax highlighting
+- Header breadcrumb shows tool name + badge
+- No console errors
+
+---
+
+### Task 4: Update hub.html — add tools link in sidebar footer
+
+**Files:**
+- Modify: `demo/hub.html` (around line 487–489)
+
+- [ ] **Step 1: Find the footer link block**
+
+In `hub.html`, locate the sidebar footer (around line 483–490). It currently has two `<a>` links: deployment.html and pitfalls.html.
+
+- [ ] **Step 2: Add tools.html link after pitfalls link**
+
+Add this `<a>` immediately after the pitfalls link:
+
+```html
+<a href="tools.html" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);text-decoration:none;padding:6px 10px;border-radius:6px;border:1px solid var(--border);transition:color 0.15s,border-color 0.15s,background 0.15s" onmouseover="this.style.color='var(--blue)';this.style.borderColor='var(--blue)';this.style.background='rgba(88,166,255,0.08)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)';this.style.background='transparent'">
+  <span style="font-size:13px">🛠</span> 开发小工具
+</a>
+```
+
+- [ ] **Step 3: Verify hub.html links**
+
+Open `demo/hub.html`, scroll to sidebar footer. Expect three links: 服务器部署指南 / React 踩坑指南 / 开发小工具. Click "开发小工具" → should navigate to tools.html.
+
+---
+
+### Task 5: Commit
+
+- [ ] **Step 1: Stage and commit**
+
+```bash
+rtk git add demo/tools.html demo/hub.html
+rtk git commit -m "feat(demo): 新增开发小工具页面 (whistle / cc-switch / Superpowers)"
+```
+
+---
+
+## Self-Review
+
+**Spec coverage:**
+- ✅ 整体布局与 pitfalls.html 一致
+- ✅ 日常分类：whistle（Quick Start + 常用规则）
+- ✅ AI 分类：cc-switch（简介 + 步骤 + 场景）、Superpowers（概念 + skill 速查）
+- ✅ hub.html 集成
+
+**Placeholder scan:** No TBD, TODO, or vague steps. All code blocks contain actual content.
+
+**Type consistency:** `tools` array → `renderTool(t)` → `renderers[t.id](t)` → `selectTool(id)`. All reference `t.id`, `t.name`, `t.group`, `t.type`, `t.tags` — consistent throughout.

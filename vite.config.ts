@@ -11,6 +11,7 @@ export default defineConfig({
         runner: resolve(__dirname, 'demo/runner.html'),
         pitfalls: resolve(__dirname, 'demo/pitfalls.html'),
         deployment: resolve(__dirname, 'demo/deployment.html'),
+        tools: resolve(__dirname, 'demo/tools.html'),
       },
     },
   },

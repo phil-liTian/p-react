@@ -1213,17 +1213,64 @@ WantedBy=multi-user.target</span>`,
         title: '常用运维命令',
         subs: [
           {
+            title: '本地操作',
+            code: `<span class=\"cm\"># 启动mysql</span>
+<span class=\"cmd\">brew services start mysql</span>
+<span class=\"cmd\">brew services start mysql</span>
+<span class=\"cmd\">brew services restart mysql</span>
+<span class=\"cmd\">brew services stop mysql</span>
+<span class=\"cm\"># 登录 MySQL（本地）</span>
+<span class=\"cmd\">mysql -u root -p</span>
+<span class=\"cmd\">mysql -u root -p myapp</span>  <span class=\"cm\"># 直接进入指定数据库</span>
+
+<span class=\"cm\"># 基本信息查看</span>
+<span class=\"kw\">SHOW DATABASES;</span>
+<span class=\"kw\">USE</span> myapp;
+<span class=\"kw\">SHOW TABLES;</span>
+<span class=\"kw\">DESC</span> users;
+<span class=\"kw\">SHOW CREATE TABLE</span> users;
+
+<span class=\"cm\"># 查看当前连接数</span>
+<span class=\"kw\">SHOW STATUS LIKE</span> 'Threads_connected';
+<span class=\"kw\">SHOW PROCESSLIST;</span>
+
+<span class=\"cm\"># 用户与权限管理</span>
+<span class=\"kw\">CREATE USER</span> 'myuser'@'localhost' <span class=\"kw\">IDENTIFIED BY</span> 'password';
+<span class=\"kw\">GRANT ALL PRIVILEGES ON</span> myapp.* <span class=\"kw\">TO</span> 'myuser'@'localhost';
+<span class=\"kw\">FLUSH PRIVILEGES;</span>
+<span class=\"kw\">SHOW GRANTS FOR</span> 'myuser'@'localhost';
+
+<span class=\"cm\"># 数据库与表操作</span>
+<span class=\"kw\">CREATE DATABASE</span> myapp;
+<span class=\"kw\">DROP DATABASE</span> myapp;
+<span class=\"kw\">CREATE TABLE</span> users (id INT PRIMARY KEY, name VARCHAR(50));
+<span class=\"kw\">DROP TABLE</span> users;
+
+<span class=\"cm\"># 数据操作</span>
+<span class=\"kw\">SELECT</span> * <span class=\"kw\">FROM</span> users <span class=\"kw\">LIMIT</span> 10;
+<span class=\"kw\">INSERT INTO</span> users <span class=\"kw\">VALUES</span> (1, 'Tom');
+<span class=\"kw\">UPDATE</span> users <span class=\"kw\">SET</span> name = 'Jerry' <span class=\"kw\">WHERE</span> id = 1;
+<span class=\"kw\">DELETE FROM</span> users <span class=\"kw\">WHERE</span> id = 1;
+
+<span class=\"cm\"># 导出与导入</span>
+<span class=\"cmd\">mysqldump -u root -p myapp > backup.sql</span>
+<span class=\"cmd\">mysqldump -u root -p myapp users > users.sql</span>  <span class=\"cm\"># 只导出特定表</span>
+<span class=\"cmd\">mysql -u root -p myapp < backup.sql</span>
+<span class=\"cmd\">mysql -u root -p -e "SELECT * FROM users" > result.txt</span>  <span class=\"cm\"># 导出到文件</span>`,
+            label: 'bash + sql'
+          },
+          {
             title: '日常操作',
-            code: `<span class="kw">SHOW DATABASES;</span>
-<span class="kw">USE</span> myapp;
-<span class="kw">SHOW TABLES;</span>
-<span class="kw">SHOW STATUS LIKE</span> 'Threads_connected';
+            code: `<span class=\"kw\">SHOW DATABASES;</span>
+<span class=\"kw\">USE</span> myapp;
+<span class=\"kw\">SHOW TABLES;</span>
+<span class=\"kw\">SHOW STATUS LIKE</span> 'Threads_connected';
 
-<span class="cm"># 导出数据库</span>
-<span class="cmd">mysqldump -u myuser -p myapp > backup.sql</span>
+<span class=\"cm\"># 导出数据库</span>
+<span class=\"cmd\">mysqldump -u myuser -p myapp > backup.sql</span>
 
-<span class="cm"># 导入 SQL 文件</span>
-<span class="cmd">mysql -u myuser -p myapp &lt; backup.sql</span>`,
+<span class=\"cm\"># 导入 SQL 文件</span>
+<span class=\"cmd\">mysql -u myuser -p myapp &lt; backup.sql</span>`,
             label: 'sql + bash'
           }
         ]
