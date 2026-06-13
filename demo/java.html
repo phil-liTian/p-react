@@ -965,6 +965,24 @@ public void transfer(Long fromId, Long toId, BigDecimal amount) {
     ['Durability 持久性',  '提交后不会丢失',                   'localStorage.setItem 后刷新页面数据还在'],
   ];
   const acidTable = compareCard(acidRows, ['ACID 特性', 'Java（Spring Boot）']);
+
+  const annotationCode = `@Transactional(
+    rollbackFor = Exception.class,  // 默认只回滚 RuntimeException，加这行让所有异常都回滚
+    readOnly = true,                // 只读事务：SELECT 专用，数据库可做性能优化
+    timeout = 30                    // 超时秒数，超时自动回滚（类似 fetch 的 AbortController）
+)
+public UserDTO getUserById(Long id) { ... }`;
+
+  const annotationWarn = ruleBox('warning',
+    `<strong>注意：<code>@Transactional</code> 只在 Spring Bean 的 public 方法上生效。</strong>
+    如果你在同一个类内部直接调用带 <code>@Transactional</code> 的方法（自调用），事务不会生效——这是最常见的陷阱，后续专题会详细讲。`);
+
+  return articleShell(t, `
+    ${section('核心结论', conclusion)}
+    ${section('前端 vs Spring：谁来负责回滚？', rollbackPair)}
+    ${section('中间步骤失败了，数据会怎样？', txComparePair)}
+    ${section('ACID 是什么意思？', acidTable)}
+    ${section('常用注解参数', codeBlock('@Transactional 参数', 'dot-orange', 'java', annotationCode) + annotationWarn)}`);
 }
 
 // ── Render engine ─────────────────────────────────────────────────────────────
@@ -972,6 +990,7 @@ public void transfer(Long fromId, Long toId, BigDecimal amount) {
 const renderers = {
   'maven-vs-npm': renderMavenVsNpm,
   'spring-boot-vs-vite': renderSpringBootVsVite,
+  'spring-transaction-intro': renderSpringTransactionIntro,
 };
 
 function renderArticle(t) {
