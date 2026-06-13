@@ -903,6 +903,35 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     ${section('前端开发者需要注意的差异', diffsHtml)}`);
 }
 
+function renderSpringTransactionIntro(t) {
+  const conclusion = ruleBox('info',
+    `<strong>事务 = 一组操作的"要么全成功，要么全回滚"保证。</strong><br><br>
+    前端类比：你写过 <code>Promise.all</code> 失败后手动 undo 多个状态吗？事务就是数据库帮你做了这件事——任何一步失败，之前所有改动自动撤销，不需要你手写 rollback 逻辑。`);
+
+  const jsRollback = `// 前端：手动管理"回滚"
+async function transfer(from, to, amount) {
+  try {
+    await deductBalance(from, amount)   // 第一步
+    await addBalance(to, amount)        // 第二步：如果这里失败...
+  } catch (e) {
+    await addBalance(from, amount)      // 必须手动撤销第一步
+    throw e
+  }
+}`;
+
+  const javaRollback = `// Spring：@Transactional 自动回滚
+@Transactional
+public void transfer(Long fromId, Long toId, BigDecimal amount) {
+    userMapper.deductBalance(fromId, amount);  // 第一步
+    userMapper.addBalance(toId, amount);       // 第二步：失败则两步都撤销
+    // 不需要写任何 catch + undo 逻辑
+}`;
+
+  const rollbackPair = codeBlocksRow([
+    codeBlock('JavaScript（前端手动回滚）', 'dot-blue', 'javascript', jsRollback),
+    codeBlock('Java（Spring 自动回滚）', 'dot-orange', 'java', javaRollback),
+  ]);
+
 // ── Render engine ─────────────────────────────────────────────────────────────
 
 const renderers = {
