@@ -562,8 +562,8 @@ function codeBlock(label, dotClass, lang, code) {
   return `
     <div class="code-block-wrap">
       <div class="code-block-label">
-        <span class="code-block-label-dot ${dotClass}"></span>
-        <span class="code-block-label-text">${label}</span>
+        <span class="code-block-label-dot ${escHtml(dotClass)}"></span>
+        <span class="code-block-label-text">${escHtml(label)}</span>
       </div>
       <pre><code class="language-${lang}">${escHtml(code)}</code></pre>
     </div>`;
