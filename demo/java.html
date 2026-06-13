@@ -957,6 +957,14 @@ public void transfer(Long fromId, Long toId, BigDecimal amount) {
     codeBlock('无事务（数据不一致）', 'dot-red', 'java', noTxCode),
     codeBlock('有事务（自动回滚）', 'dot-green', 'java', withTxCode),
   ]);
+
+  const acidRows = [
+    ['Atomicity 原子性',   '要么全做，要么全撤',               'Promise.all 失败时没有中间状态'],
+    ['Consistency 一致性', '事务前后数据满足约束',             '表单提交后字段不违反 unique / not null'],
+    ['Isolation 隔离性',   '并发事务互不干扰',                 '两用户同时操作，看不到彼此未提交的数据'],
+    ['Durability 持久性',  '提交后不会丢失',                   'localStorage.setItem 后刷新页面数据还在'],
+  ];
+  const acidTable = compareCard(acidRows, ['ACID 特性', 'Java（Spring Boot）']);
 }
 
 // ── Render engine ─────────────────────────────────────────────────────────────
