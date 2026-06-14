@@ -320,9 +320,7 @@ function mountState<State>(
   const dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber!,
-    queue,
-    undefined,
-    SyncLane
+    queue
   ) as (action: ((prevState: State) => State) | State) => void;
 
   return [memoizedState, dispatch];
@@ -361,9 +359,7 @@ function updateState<State>(): [
   const dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber!,
-    queue,
-    undefined,
-    SyncLane
+    queue
   ) as (action: ((prevState: State) => State) | State) => void;
 
   return [baseState, dispatch];
