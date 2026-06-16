@@ -1,5 +1,57 @@
 const topics = [
   {
+    id: 'ai-coding-workflow',
+    name: 'AI 辅助编程工作流',
+    group: 'AI 前端',
+    type: 'accent',
+    icon: '🤖',
+    tags: [
+      { label: 'Copilot', type: 'accent' },
+      { label: 'Claude', type: 'info' },
+      { label: 'Cursor', type: 'success' },
+      { label: '最佳实践', type: 'warning' },
+    ],
+  },
+  {
+    id: 'prompt-engineering',
+    name: 'Prompt Engineering 基础',
+    group: 'AI 前端',
+    type: 'info',
+    icon: '✍️',
+    tags: [
+      { label: 'Few-shot', type: 'info' },
+      { label: '思维链 CoT', type: 'accent' },
+      { label: '角色设定', type: 'success' },
+      { label: '结构化输出', type: 'warning' },
+    ],
+  },
+  {
+    id: 'rag-vector',
+    name: 'RAG 与向量检索',
+    group: 'AI 前端',
+    type: 'success',
+    icon: '🔍',
+    tags: [
+      { label: 'RAG', type: 'success' },
+      { label: '向量数据库', type: 'info' },
+      { label: 'Embedding', type: 'accent' },
+      { label: '语义搜索', type: 'warning' },
+    ],
+  },
+  {
+    id: 'ai-safety',
+    name: 'AI 安全与幻觉',
+    group: 'AI 前端',
+    type: 'danger',
+    icon: '🛡️',
+    tags: [
+      { label: 'Prompt 注入', type: 'danger' },
+      { label: '幻觉', type: 'warning' },
+      { label: '输出验证', type: 'success' },
+      { label: '越狱防御', type: 'accent' },
+    ],
+  },
+  {
     id: 'event-loop',
     name: 'Event Loop 运行机制',
     group: 'JS 异步编程',
@@ -560,6 +612,7 @@ const topics = [
       { label: 'Sentry', type: 'accent' },
     ],
   },
+  
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
