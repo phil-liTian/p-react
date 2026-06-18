@@ -246,6 +246,19 @@ const topics = [
     ],
   },
   {
+    id: 'global-log-interceptor',
+    name: '全局日志拦截',
+    group: '🌱 Spring 通识',
+    type: 'info',
+    icon: '📋',
+    tags: [
+      { label: 'AOP 日志', type: 'info' },
+      { label: 'Filter', type: 'accent' },
+      { label: 'MDC 链路', type: 'success' },
+      { label: 'HandlerInterceptor', type: 'warning' },
+    ],
+  },
+  {
     id: 'java-utils',
     name: '通用工具类',
     group: '☕ Java 基础',
