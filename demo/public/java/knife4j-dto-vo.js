@@ -343,6 +343,95 @@ public class UserVO {
     <strong>访问地址：</strong><code>http://localhost:8080/doc.html</code>（Knife4j 增强 UI）<br>
     <code>http://localhost:8080/swagger-ui/index.html</code>（原生 Swagger UI）`);
 
+  // ── Section 5b：OpenAPI 配置类 + JWT 鉴权 ─────────────────────────────────
+
+  const openApiConfigCode = `import io.swagger.v3.oas.models.*;
+import io.swagger.v3.oas.models.info.*;
+import io.swagger.v3.oas.models.security.*;
+import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.context.annotation.*;
+
+@Configuration
+public class Knife4jConfig {
+
+  // 全局文档信息（显示在 doc.html 顶部）
+  @Bean
+  public OpenAPI openAPI() {
+    return new OpenAPI()
+      .info(new Info()
+        .title("My Project API")
+        .description("接口文档 - 开发环境")
+        .version("v1.0.0")
+        .contact(new Contact().name("Phil").email("phil@example.com")))
+      // 全局安全方案：JWT Bearer Token
+      .addSecurityItem(new SecurityRequirement().addList("JWT"))
+      .components(new Components()
+        .addSecuritySchemes("JWT", new SecurityScheme()
+          .name("JWT")
+          .type(SecurityScheme.Type.HTTP)
+          .scheme("bearer")
+          .bearerFormat("JWT")
+          .description("在此输入 token，格式：直接粘贴 token 字符串（不加 Bearer 前缀）")));
+  }
+
+  // 接口分组：按模块拆分（可选，单模块项目可不配置）
+  @Bean
+  public GroupedOpenApi userApi() {
+    return GroupedOpenApi.builder()
+      .group("用户模块")
+      .pathsToMatch("/api/users/**")
+      .build();
+  }
+
+  @Bean
+  public GroupedOpenApi orderApi() {
+    return GroupedOpenApi.builder()
+      .group("订单模块")
+      .pathsToMatch("/api/orders/**")
+      .build();
+  }
+}`;
+
+  const knife4jProdCode = `# application-prod.yml（生产环境关闭文档，防止接口信息泄露）
+springdoc:
+  api-docs:
+    enabled: false    # 关闭 /v3/api-docs 端点
+
+knife4j:
+  enable: false       # 关闭 Knife4j UI
+
+# application-dev.yml（开发环境正常开启）
+springdoc:
+  api-docs:
+    enabled: true
+knife4j:
+  enable: true
+  setting:
+    language: zh_CN
+
+# Spring Security 需放行文档路径（否则 doc.html 返回 401）
+# SecurityConfig.java 中：
+# .requestMatchers(
+#     "/doc.html",
+#     "/v3/api-docs/**",
+#     "/swagger-ui/**",
+#     "/swagger-resources/**",
+#     "/webjars/**"
+# ).permitAll()`;
+
+  const knife4jJwtUsageBox = ruleBox('info',
+    `<strong>在 doc.html 中调试需要鉴权的接口：</strong><br><br>
+    1. 先调用登录接口（<code>POST /api/auth/login</code>），从响应中复制 token 值<br>
+    2. 点击右上角 <strong>「Authorize 🔓」</strong> 按钮<br>
+    3. 在弹窗中粘贴 token（直接粘贴，<strong>不加 Bearer 前缀</strong>，Knife4j 自动添加）<br>
+    4. 点击 Authorize → 再调其他接口，请求头会自动带上 <code>Authorization: Bearer xxx</code><br><br>
+    前端类比：等价于在 Postman 的 <strong>Collection Variables</strong> 中设置 token，之后所有请求自动引用。`);
+
+  const openApiPair = codeBlocksRow([
+    codeBlock('Knife4jConfig.java — OpenAPI 配置 + JWT 鉴权', 'dot-orange', 'java', openApiConfigCode),
+    codeBlock('生产环境关闭文档 / Security 放行', 'dot-yellow', 'yaml', knife4jProdCode),
+  ]);
+
   // ── Section 6：统一响应体 ─────────────────────────────────────────────────
 
   const resultCode = `// 统一响应体 Result<T>：所有接口都用这个包装返回值
@@ -415,5 +504,6 @@ interface UserVO {
     ${section('DTO — 入参校验', dtoPair + dtoJsBlock + dtoNote)}
     ${section('VO — 响应视图', voPair + voNote)}
     ${section('Knife4j — API 文档', knife4jDepBlock + knife4jYamlBlock + knife4jPair + knife4jNote)}
+    ${section('Knife4j — OpenAPI 配置与 JWT 鉴权调试', openApiPair + knife4jJwtUsageBox)}
     ${section('统一响应体 Result<T>', resultPair)}`);
 }
