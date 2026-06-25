@@ -1995,6 +1995,171 @@ vm_memory_high_watermark.relative = 0.4`,
       { type: 'warning', text: '默认 <code>guest</code> 账号只允许从 <code>localhost</code> 登录。生产环境或远程连接需创建新用户并通过防火墙限制 5672 / 15672 端口的访问来源。' },
       { type: 'success', text: 'Spring Boot 连接 RabbitMQ 时，<code>spring.rabbitmq.virtual-host</code> 必须与 <code>rabbitmqctl add_vhost</code> 创建的 vhost 名称完全一致，默认为 <code>/</code>。' }
     ]
+  },
+
+  {
+    id: 'postgresql',
+    name: 'PostgreSQL 安装',
+    group: '数据库安装',
+    badge: 'PostgreSQL',
+    icon: '🐘',
+    tags: [{ label: 'PostgreSQL', type: 'info' }, { label: 'macOS', type: 'success' }, { label: 'Ubuntu', type: 'warning' }],
+    summary: '在 macOS（Homebrew）或 Ubuntu 上安装 PostgreSQL，完成初始化配置，创建数据库与用户，掌握 psql 常用操作。',
+    sections: [
+      {
+        title: 'macOS 安装（Homebrew）',
+        subs: [
+          {
+            title: '安装并启动',
+            code: `<span class="cm"># 安装最新稳定版</span>
+<span class="cmd">brew install postgresql@17</span>
+
+<span class="cm"># 将 pg 命令行工具加入 PATH（Apple Silicon）</span>
+<span class="cmd">echo 'export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"' >> ~/.zshrc</span>
+<span class="cmd">source ~/.zshrc</span>
+
+<span class="cm"># Intel Mac 路径不同</span>
+<span class="cmd">echo 'export PATH="/usr/local/opt/postgresql@17/bin:$PATH"' >> ~/.zshrc</span>
+<span class="cmd">source ~/.zshrc</span>
+
+<span class="cm"># 启动服务（后台运行，开机自启）</span>
+<span class="cmd">brew services start postgresql@17</span>
+
+<span class="cm"># 验证安装</span>
+<span class="cmd">psql --version</span>`,
+            label: 'bash'
+          },
+          {
+            title: '服务管理',
+            code: `<span class="cmd">brew services start postgresql@17</span>    <span class="cm"># 启动（开机自启）</span>
+<span class="cmd">brew services stop postgresql@17</span>     <span class="cm"># 停止</span>
+<span class="cmd">brew services restart postgresql@17</span>  <span class="cm"># 重启</span>
+<span class="cmd">brew services list</span>                   <span class="cm"># 查看所有服务状态</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: 'Ubuntu 安装',
+        subs: [
+          {
+            title: '通过官方 APT 仓库安装（推荐，可指定版本）',
+            code: `<span class="cm"># 安装依赖工具</span>
+<span class="cmd">sudo apt install -y curl ca-certificates</span>
+
+<span class="cm"># 添加 PostgreSQL 官方 APT 仓库</span>
+<span class="cmd">sudo install -d /usr/share/postgresql-common/pgdg</span>
+<span class="cmd">sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc</span>
+<span class="cmd">sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'</span>
+
+<span class="cm"># 安装（默认最新稳定版；指定版本改为 postgresql-16 等）</span>
+<span class="cmd">sudo apt update && sudo apt install -y postgresql</span>
+
+<span class="cm"># 确认服务已自动启动</span>
+<span class="cmd">sudo systemctl status postgresql</span>`,
+            label: 'bash'
+          },
+          {
+            title: '服务管理',
+            code: `<span class="cmd">sudo systemctl start postgresql</span>    <span class="cm"># 启动</span>
+<span class="cmd">sudo systemctl stop postgresql</span>     <span class="cm"># 停止</span>
+<span class="cmd">sudo systemctl restart postgresql</span>  <span class="cm"># 重启</span>
+<span class="cmd">sudo systemctl enable postgresql</span>   <span class="cm"># 设置开机自启</span>
+<span class="cmd">sudo systemctl status postgresql</span>   <span class="cm"># 查看运行状态</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '初始配置',
+        subs: [
+          {
+            title: '登录 PostgreSQL（两种方式）',
+            code: `<span class="cm"># macOS：直接以当前系统用户身份登录（无需 sudo）</span>
+<span class="cmd">psql postgres</span>
+
+<span class="cm"># Ubuntu：切换到内置的 postgres 系统用户后登录</span>
+<span class="cmd">sudo -u postgres psql</span>`,
+            label: 'bash'
+          },
+          {
+            title: '创建用户与数据库',
+            code: `<span class="cm">-- 修改 postgres 超级用户密码（Ubuntu 生产环境必做）</span>
+<span class="kw">ALTER USER</span> postgres <span class="kw">WITH PASSWORD</span> 'your_password';
+
+<span class="cm">-- 创建普通用户</span>
+<span class="kw">CREATE USER</span> myuser <span class="kw">WITH PASSWORD</span> 'your_password';
+
+<span class="cm">-- 创建数据库并指定所有者</span>
+<span class="kw">CREATE DATABASE</span> myapp <span class="kw">OWNER</span> myuser;
+
+<span class="cm">-- 授予用户对数据库的全部权限</span>
+<span class="kw">GRANT ALL PRIVILEGES ON DATABASE</span> myapp <span class="kw">TO</span> myuser;
+
+<span class="cm">-- 退出 psql</span>
+<span class="kw">\q</span>`,
+            label: 'sql'
+          }
+        ]
+      },
+      {
+        title: '常用 psql 命令',
+        subs: [
+          {
+            title: '元命令 & 基本操作',
+            code: `<span class="cm">-- 连接指定数据库</span>
+<span class="cmd">psql -U myuser -d myapp</span>
+<span class="cmd">psql -U myuser -d myapp -h 127.0.0.1 -p 5432</span>
+
+<span class="cm">-- psql 元命令（以 \\ 开头，不需要分号）</span>
+<span class="kw">\l</span>            <span class="cm">-- 列出所有数据库</span>
+<span class="kw">\c myapp</span>     <span class="cm">-- 切换到 myapp 数据库</span>
+<span class="kw">\dt</span>           <span class="cm">-- 列出当前库所有表</span>
+<span class="kw">\d users</span>     <span class="cm">-- 查看 users 表结构</span>
+<span class="kw">\du</span>           <span class="cm">-- 列出所有用户/角色</span>
+<span class="kw">\conninfo</span>    <span class="cm">-- 查看当前连接信息</span>
+<span class="kw">\q</span>            <span class="cm">-- 退出 psql</span>
+
+<span class="cm">-- 导出 / 导入</span>
+<span class="cmd">pg_dump -U myuser myapp > backup.sql</span>
+<span class="cmd">psql -U myuser myapp < backup.sql</span>`,
+            label: 'bash + sql'
+          }
+        ]
+      },
+      {
+        title: '允许远程连接（Ubuntu）',
+        subs: [
+          {
+            title: '修改 postgresql.conf 与 pg_hba.conf',
+            code: `<span class="cm"># 1. 找到配置文件位置（版本号因安装而异）</span>
+<span class="cmd">sudo find /etc/postgresql -name "postgresql.conf"</span>
+
+<span class="cm"># 2. 修改监听地址（默认只监听 localhost）</span>
+<span class="cmd">sudo nano /etc/postgresql/17/main/postgresql.conf</span>
+<span class="cm"># 找到并改为：</span>
+<span class="st">listen_addresses = '*'</span>
+
+<span class="cm"># 3. 配置客户端认证（允许指定 IP 用密码登录）</span>
+<span class="cmd">sudo nano /etc/postgresql/17/main/pg_hba.conf</span>
+<span class="cm"># 在文件末尾追加（允许所有 IP，生产环境改为具体 IP 段）：</span>
+<span class="st">host    all    all    0.0.0.0/0    scram-sha-256</span>
+
+<span class="cm"># 4. 重启生效</span>
+<span class="cmd">sudo systemctl restart postgresql</span>
+
+<span class="cm"># 5. 开放防火墙端口（ufw）</span>
+<span class="cmd">sudo ufw allow 5432/tcp</span>`,
+            label: 'bash'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: 'macOS 通过 Homebrew 安装后，初始 superuser 与当前系统登录用户同名，直接执行 <code>psql postgres</code> 即可进入，无需 sudo 或额外设置密码。' },
+      { type: 'warning', text: 'Ubuntu 开放远程连接（<code>listen_addresses = \'*\'</code>）后，务必在 <code>pg_hba.conf</code> 中限制允许的 IP 范围，并在防火墙只开放受信任来源访问 5432 端口，避免数据库暴露在公网。' },
+      { type: 'success', text: 'PostgreSQL 默认端口 <code>5432</code>，与 MySQL 的 <code>3306</code> 不同。连接字符串格式：<code>postgresql://myuser:password@localhost:5432/myapp</code>。' }
+    ]
   }
 ];
 

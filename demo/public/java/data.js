@@ -1,5 +1,18 @@
 const topics = [
   {
+    id: 'java-overview',
+    name: 'Java 概述',
+    group: '☕ 概述',
+    type: 'accent',
+    icon: '☕',
+    tags: [
+      { label: '概述', type: 'accent' },
+      { label: '应用场景', type: 'info' },
+      { label: '企业级', type: 'success' },
+      { label: 'JVM', type: 'warning' },
+    ],
+  },
+  {
     id: 'learning-map',
     name: '学习路径总览',
     group: '🗺️ 学习路径',

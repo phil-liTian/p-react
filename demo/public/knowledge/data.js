@@ -679,6 +679,36 @@ const topics = [
     ],
   },
 
+  // ── 前端常见疑难问题 ──────────────────────────────────────────────────
+
+  {
+    id: 'large-tree-render',
+    name: '大数据树形渲染不卡死',
+    group: '前端常见疑难问题',
+    type: 'danger',
+    icon: '🌲',
+    tags: [
+      { label: '10 万条数据', type: 'danger' },
+      { label: '虚拟树', type: 'warning' },
+      { label: 'Web Worker', type: 'info' },
+      { label: '性能', type: 'accent' },
+    ],
+  },
+
+  {
+    id: 'frontend-idempotency',
+    name: '千万 QPS 下前端幂等性方案',
+    group: '前端常见疑难问题',
+    type: 'danger',
+    icon: '🔐',
+    tags: [
+      { label: '幂等性', type: 'danger' },
+      { label: 'Idempotency Key', type: 'warning' },
+      { label: '防重提交', type: 'info' },
+      { label: '高 QPS', type: 'accent' },
+    ],
+  },
+
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

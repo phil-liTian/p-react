@@ -43,6 +43,21 @@ const tools = [
     summary: 'SwitchHosts 是一款跨平台的 hosts 文件管理工具，支持快速切换多套 hosts 方案，适合在本地开发、测试环境、生产联调等场景下快速切换域名解析配置。',
   },
 
+  {
+    id: 'jetbrains-toolbox',
+    name: 'JetBrains Toolbox',
+    group: '日常工具',
+    type: 'info',
+    icon: '🧰',
+    tags: [
+      { label: 'JetBrains', type: 'info' },
+      { label: 'IDE 管理', type: 'success' },
+      { label: '版本切换', type: 'warning' },
+    ],
+    summary: 'JetBrains Toolbox 是统一管理所有 JetBrains IDE 的桌面应用，支持一键安装/更新/回滚 IntelliJ IDEA、WebStorm、GoLand 等，并能为每个项目指定不同 IDE 版本。',
+    url: 'https://www.jetbrains.com.cn/toolbox-app/',
+  },
+
   // ── AI 工具 ───────────────────────────────────────────────────────────
   {
     id: 'rtk',

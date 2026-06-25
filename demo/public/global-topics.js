@@ -55,12 +55,15 @@ const globalTopics = [
   { id: 'report-method',        name: '数据上报方式（beacon / img / xhr）',          group: '埋点监控',     icon: '📡', page: 'knowledge' },
   { id: 'sampling',             name: '采样率与上报策略',                            group: '埋点监控',     icon: '🎲', page: 'knowledge' },
   { id: 'log-aggregation',      name: '前端日志聚合与告警',                          group: '埋点监控',     icon: '🔔', page: 'knowledge' },
-  { id: 'prod-only-bug',        name: '线上问题排查思路',                             group: '埋点监控',     icon: '🔬', page: 'knowledge' },
+  { id: 'prod-only-bug',        name: '线上问题排查思路',                             group: '埋点监控',          icon: '🔬', page: 'knowledge' },
+  { id: 'large-tree-render',    name: '大数据树形渲染不卡死',           group: '前端常见疑难问题',   icon: '🌲', page: 'knowledge' },
+  { id: 'frontend-idempotency', name: '千万 QPS 下前端幂等性方案',      group: '前端常见疑难问题',   icon: '🔐', page: 'knowledge' },
 
   // ── 开发工具 ──
-  { id: 'resize-image',  name: '在线改变图片尺寸',      group: '工具箱',   icon: '🖼️', page: 'tools' },
-  { id: 'whistle',       name: 'whistle 抓包',          group: '日常工具', icon: '🔵', page: 'tools' },
-  { id: 'switch-hosts',  name: 'SwitchHosts',           group: '日常工具', icon: '🔵', page: 'tools' },
+  { id: 'resize-image',  name: '在线改变图片尺寸',        group: '工具箱',   icon: '🖼️', page: 'tools' },
+  { id: 'whistle',       name: 'whistle 抓包',            group: '日常工具', icon: '🔍', page: 'tools' },
+  { id: 'switch-hosts',  name: 'SwitchHosts',             group: '日常工具', icon: '🌐', page: 'tools' },
+  { id: 'jetbrains-toolbox', name: 'JetBrains Toolbox',  group: '日常工具', icon: '🧰', page: 'tools' },
   { id: 'rtk',           name: 'RTK (Rust Token Killer)', group: 'AI 工具', icon: '🟣', page: 'tools' },
   { id: 'cc-switch',     name: 'cc-switch',             group: 'AI 工具',  icon: '🟣', page: 'tools' },
   { id: 'superpowers',   name: 'Superpowers',           group: 'AI 工具',  icon: '🟣', page: 'tools' },
@@ -81,7 +84,8 @@ const globalTopics = [
   { id: 'limits-risks',               name: '边界与风险',             group: '风险篇', icon: '⚠️', page: 'ai-coding' },
 
   // ── Java 视角 ──
-  { id: 'learning-map',                name: '学习路径总览',                  group: '学习路径',  icon: '🗺️', page: 'java' },
+  { id: 'java-overview',                name: 'Java 概述',                     group: '概述',      icon: '☕', page: 'java' },
+  { id: 'learning-map',                 name: '学习路径总览',                   group: '学习路径',  icon: '🗺️', page: 'java' },
   { id: 'spring-bean-ioc',             name: 'Spring Bean 与 IoC 容器',       group: 'Spring',   icon: '🏭', page: 'java' },
   { id: 'spring-aop',                  name: 'AOP 代理机制',                  group: 'Spring',   icon: '🔗', page: 'java' },
   { id: 'spring-mvc-flow',             name: 'Spring MVC 请求链路',           group: 'Spring',   icon: '🌐', page: 'java' },
@@ -107,13 +111,18 @@ const globalTopics = [
   { id: 'java-stream',                 name: 'Stream 分组、统计、过滤',       group: 'Java 基础', icon: '🌊', page: 'java' },
 
   // ── 部署指南 ──
-  { id: 'node-pm2',        name: 'Node.js + PM2',   group: '部署',    icon: '🚀', page: 'deployment' },
-  { id: 'go-deploy',       name: 'Go 项目部署',      group: '部署',    icon: '🐹', page: 'deployment' },
-  { id: 'frontend-nginx',  name: '前端 + Nginx',     group: '部署',    icon: '🖥️', page: 'deployment' },
-  { id: 'mysql',           name: 'MySQL 安装',       group: '数据库',  icon: '🐬', page: 'deployment' },
-  { id: 'mongodb-macos',   name: 'MongoDB (macOS)', group: '数据库',  icon: '🍃', page: 'deployment' },
-  { id: 'redis',           name: 'Redis 安装',       group: '数据库',  icon: '🔴', page: 'deployment' },
-  { id: 'rabbitmq-macos',  name: 'RabbitMQ (macOS)', group: '中间件', icon: '🐇', page: 'deployment' },
+  { id: 'node-pm2',        name: 'Node.js + PM2',    group: '部署',    icon: '🚀', page: 'deployment' },
+  { id: 'go-deploy',       name: 'Go 项目部署',       group: '部署',    icon: '🐹', page: 'deployment' },
+  { id: 'frontend-nginx',  name: '前端 + Nginx',      group: '部署',    icon: '🖥️', page: 'deployment' },
+  { id: 'mysql',           name: 'MySQL 安装',        group: '数据库',  icon: '🐬', page: 'deployment' },
+  { id: 'mongodb-macos',   name: 'MongoDB (macOS)',   group: '数据库',  icon: '🍃', page: 'deployment' },
+  { id: 'redis',           name: 'Redis 安装',        group: '数据库',  icon: '🔴', page: 'deployment' },
+  { id: 'postgresql',      name: 'PostgreSQL 安装',   group: '数据库',  icon: '🐘', page: 'deployment' },
+  { id: 'rabbitmq-macos',  name: 'RabbitMQ (macOS)',  group: '中间件',  icon: '🐇', page: 'deployment' },
+
+  // ── Python 视角 ──
+  { id: 'python-overview', name: 'Python 概述',     group: '概述',   icon: '🐍', page: 'python' },
+  { id: 'uv-vs-npm',       name: 'uv vs npm',       group: '工具链', icon: '📦', page: 'python' },
 
   // ── 踩坑指南 ──
   { id: 'stale-closure',      name: 'useEffect 闭包陷阱',             group: 'Hooks',    icon: '🪤', page: 'pitfalls' },
@@ -139,11 +148,12 @@ const globalTopics = [
 const _pageUrls = {
   knowledge: '/knowledge.html', tools: '/tools.html', 'ai-coding': '/ai-coding.html',
   java: '/java.html', deployment: '/deployment.html', pitfalls: '/pitfalls.html',
+  python: '/python.html',
 };
 
 const _pageLabels = {
   knowledge: '知识库', tools: '工具', 'ai-coding': 'AI Coding',
-  java: 'Java', deployment: '部署', pitfalls: '踩坑',
+  java: 'Java', deployment: '部署', pitfalls: '踩坑', python: 'Python',
 };
 
 function initFilterModal(currentPage, localNavigate) {
