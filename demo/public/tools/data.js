@@ -1,4 +1,19 @@
 const tools = [
+  // ── 工具箱 ────────────────────────────────────────────────────────────
+  {
+    id: 'resize-image',
+    name: '在线改变图片尺寸',
+    group: '工具箱',
+    type: 'info',
+    icon: '🖼️',
+    tags: [
+      { label: '图片处理', type: 'info' },
+      { label: '在线工具', type: 'success' },
+    ],
+    summary: '在线调整图片尺寸，支持自定义宽高、等比缩放，无需安装任何软件，直接在浏览器中完成图片尺寸修改并下载。',
+    url: 'https://phoedit.com/zh/resize-image/',
+  },
+
   // ── 日常工具 ──────────────────────────────────────────────────────────
   {
     id: 'whistle',
@@ -66,6 +81,19 @@ const tools = [
       { label: '工作流', type: 'info' },
     ],
     summary: 'Superpowers 是 Claude Code 的插件系统，通过 Skills 机制为 AI 注入结构化工作流，让 Claude 在 brainstorming、TDD、debug 等场景中遵循最佳实践而非随意发挥。',
+  },
+  {
+    id: 'web-access',
+    name: 'web-access',
+    group: 'AI 工具',
+    type: 'accent',
+    icon: '🌐',
+    tags: [
+      { label: 'Claude Code', type: 'accent' },
+      { label: '联网', type: 'info' },
+      { label: 'Anchor Browser', type: 'warning' },
+    ],
+    summary: 'web-access 是 Claude Code 的联网操作 skill，所有搜索、网页抓取、登录后操作、动态渲染页面（小红书、微博等）均通过此 skill 处理，底层自动选择 WebFetch 或 Anchor Browser MCP。',
   },
 ];
 

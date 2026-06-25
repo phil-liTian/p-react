@@ -414,6 +414,58 @@ const topics = [
     ],
   },
   {
+    id: 'perf-build',
+    name: '构建优化落地方案',
+    group: '性能优化',
+    type: 'accent',
+    icon: '📦',
+    tags: [
+      { label: '构建优化', type: 'accent' },
+      { label: 'Code Splitting', type: 'info' },
+      { label: 'Tree Shaking', type: 'success' },
+      { label: '长效缓存', type: 'warning' },
+    ],
+  },
+  {
+    id: 'perf-network',
+    name: '网络优化落地方案',
+    group: '性能优化',
+    type: 'info',
+    icon: '🌐',
+    tags: [
+      { label: '网络优化', type: 'info' },
+      { label: 'HTTP 缓存', type: 'success' },
+      { label: 'Resource Hints', type: 'accent' },
+      { label: 'Service Worker', type: 'warning' },
+    ],
+  },
+  {
+    id: 'perf-render',
+    name: '渲染优化落地方案',
+    group: '性能优化',
+    type: 'warning',
+    icon: '🖼️',
+    tags: [
+      { label: '渲染优化', type: 'warning' },
+      { label: '关键渲染路径', type: 'danger' },
+      { label: 'CLS / LCP', type: 'info' },
+      { label: '合成层', type: 'accent' },
+    ],
+  },
+  {
+    id: 'perf-runtime',
+    name: '运行时优化落地方案',
+    group: '性能优化',
+    type: 'danger',
+    icon: '⚡',
+    tags: [
+      { label: '运行时优化', type: 'danger' },
+      { label: 'INP', type: 'warning' },
+      { label: 'Web Worker', type: 'info' },
+      { label: '内存泄漏', type: 'accent' },
+    ],
+  },
+  {
     id: 'url-to-render',
     name: '从 URL 到页面渲染全流程',
     group: '浏览器原理',
@@ -612,7 +664,21 @@ const topics = [
       { label: 'Sentry', type: 'accent' },
     ],
   },
-  
+
+  {
+    id: 'prod-only-bug',
+    name: '线上问题排查思路',
+    group: '埋点与监控',
+    type: 'danger',
+    icon: '🔬',
+    tags: [
+      { label: '线上复现', type: 'danger' },
+      { label: '二分定位', type: 'warning' },
+      { label: '监控日志', type: 'info' },
+      { label: '工具链', type: 'accent' },
+    ],
+  },
+
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

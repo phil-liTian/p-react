@@ -455,6 +455,63 @@
       .article-wrapper { padding: 20px 16px 40px; }
       .nav-item { padding: 11px 16px; font-size: 14px; }
     }
+
+    /* ── Filter Modal ── */
+    .filter-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 10px; background: transparent;
+      border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-secondary); font-size: 12px;
+      font-family: var(--font-ui); cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .filter-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); background: var(--bg-overlay); }
+    .filter-btn-kbd {
+      font-size: 10px; color: var(--text-muted);
+      background: var(--bg-overlay); border: 1px solid var(--border);
+      border-radius: 3px; padding: 0 4px; font-family: var(--font-code);
+    }
+    .filter-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 200;
+      align-items: flex-start; justify-content: center; padding-top: 80px;
+    }
+    .filter-overlay.visible { display: flex; }
+    .filter-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 12px; width: 540px; max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 120px); display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6); overflow: hidden;
+    }
+    .filter-search-wrap {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .filter-search-icon { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+    .filter-search-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-size: 14px; color: var(--text-primary); font-family: var(--font-ui);
+    }
+    .filter-search-input::placeholder { color: var(--text-muted); }
+    .filter-results { overflow-y: auto; padding: 8px 0; flex: 1; min-height: 200px; }
+    .filter-results::-webkit-scrollbar { width: 4px; }
+    .filter-results::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+    .filter-group-label {
+      font-size: 10px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.8px; text-transform: uppercase; padding: 8px 16px 4px;
+    }
+    .filter-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 13.5px; color: var(--text-secondary);
+      transition: background 0.1s, color 0.1s;
+    }
+    .filter-item:hover, .filter-item.highlighted { background: var(--accent-glow); color: var(--accent-light); }
+    .filter-item-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+    .filter-item-name { flex: 1; }
+    .filter-item-page { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+    .filter-empty { padding: 32px 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -491,6 +548,7 @@
       <span class="content-header-dot">·</span>
       <span class="content-header-name" id="content-header-name">选择左侧条目</span>
       <div class="content-header-spacer"></div>
+      <button class="filter-btn" id="filter-btn">⌘ 筛选 <span class="filter-btn-kbd">K</span></button>
       <span class="content-header-badge" id="content-header-badge"></span>
     </div>
 
@@ -500,6 +558,17 @@
   </main>
 </div>
 
+<div class="filter-overlay" id="filter-overlay">
+  <div class="filter-modal">
+    <div class="filter-search-wrap">
+      <span class="filter-search-icon">🔍</span>
+      <input class="filter-search-input" id="filter-search-input" placeholder="搜索部署方案..." autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="filter-results" id="filter-results"></div>
+  </div>
+</div>
+
+<script src="/global-topics.js"></script>
 <script>
 // ── Page data ──────────────────────────────────────────────────────────
 const pages = [
@@ -1283,6 +1352,345 @@ WantedBy=multi-user.target</span>`,
   },
 
   {
+    id: 'mongodb-macos',
+    name: 'MongoDB (macOS)',
+    group: '数据库安装',
+    badge: 'MongoDB',
+    icon: '🍃',
+    tags: [{ label: 'MongoDB', type: 'success' }, { label: 'macOS', type: 'info' }, { label: 'Homebrew', type: 'info' }],
+    summary: '在 macOS 上通过 Homebrew 安装 MongoDB Community Edition，完成服务配置与基础运维操作。',
+    sections: [
+      {
+        title: '安装 MongoDB',
+        subs: [
+          {
+            title: '通过 Homebrew 安装（推荐）',
+            code: `<span class="cm"># 添加 MongoDB 官方 tap</span>
+<span class="cmd">brew tap mongodb/brew</span>
+
+<span class="cm"># 更新 Homebrew</span>
+<span class="cmd">brew update</span>
+
+<span class="cm"># 安装 MongoDB Community Edition</span>
+<span class="cmd">brew install mongodb-community</span>
+
+<span class="cm"># 验证安装</span>
+<span class="cmd">mongod --version</span>
+<span class="cmd">mongosh --version</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '服务管理',
+        subs: [
+          {
+            title: '启动 / 停止 / 重启',
+            code: `<span class="cm"># 启动 MongoDB（开机自启）</span>
+<span class="cmd">brew services start mongodb-community</span>
+
+<span class="cm"># 停止服务</span>
+<span class="cmd">brew services stop mongodb-community</span>
+
+<span class="cm"># 重启服务</span>
+<span class="cmd">brew services restart mongodb-community</span>
+
+<span class="cm"># 查看运行状态</span>
+<span class="cmd">brew services list | grep mongodb</span>`,
+            label: 'bash'
+          },
+          {
+            title: '手动启动（前台，调试用）',
+            code: `<span class="cm"># 手动指定配置文件启动（Intel Mac）</span>
+<span class="cmd">mongod --config /usr/local/etc/mongod.conf</span>
+
+<span class="cm"># Apple Silicon (M1/M2/M3)</span>
+<span class="cmd">mongod --config /opt/homebrew/etc/mongod.conf</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '配置文件',
+        subs: [
+          {
+            title: 'mongod.conf 默认位置',
+            code: `<span class="cm"># Intel Mac</span>
+<span class="cmd">cat /usr/local/etc/mongod.conf</span>
+
+<span class="cm"># Apple Silicon (M1/M2/M3)</span>
+<span class="cmd">cat /opt/homebrew/etc/mongod.conf</span>`,
+            label: 'bash'
+          },
+          {
+            title: '默认配置内容',
+            code: `<span class="cm"># 系统日志</span>
+systemLog:
+  destination: file
+  path: <span class="st">/opt/homebrew/var/log/mongodb/mongo.log</span>
+  logAppend: true
+
+<span class="cm"># 数据存储目录</span>
+storage:
+  dbPath: <span class="st">/opt/homebrew/var/mongodb</span>
+
+<span class="cm"># 监听地址与端口</span>
+net:
+  bindIp: <span class="st">127.0.0.1</span>
+  port: <span class="st">27017</span>`,
+            label: 'mongod.conf'
+          },
+          {
+            title: '开启访问控制（可选）',
+            code: `<span class="cm"># 在 mongod.conf 末尾追加</span>
+security:
+  authorization: <span class="st">enabled</span>`,
+            label: 'mongod.conf'
+          }
+        ]
+      },
+      {
+        title: '连接与基础操作',
+        subs: [
+          {
+            title: '使用 mongosh 连接',
+            code: `<span class="cm"># 连接本地默认实例</span>
+<span class="cmd">mongosh</span>
+
+<span class="cm"># 连接指定数据库</span>
+<span class="cmd">mongosh mydb</span>
+
+<span class="cm"># 带认证连接</span>
+<span class="cmd">mongosh -u admin -p yourpassword --authenticationDatabase admin</span>`,
+            label: 'bash'
+          },
+          {
+            title: '常用 Shell 命令',
+            code: `<span class="cm"># 查看所有数据库</span>
+<span class="kw">show dbs</span>
+
+<span class="cm"># 切换 / 创建数据库</span>
+<span class="kw">use</span> myapp
+
+<span class="cm"># 查看当前数据库</span>
+<span class="kw">db</span>
+
+<span class="cm"># 查看所有集合</span>
+<span class="kw">show collections</span>
+
+<span class="cm"># 插入文档</span>
+<span class="kw">db.users.insertOne</span>({ name: <span class="st">"Tom"</span>, age: 25 })
+
+<span class="cm"># 查询文档</span>
+<span class="kw">db.users.find</span>()
+<span class="kw">db.users.find</span>({ age: { $gt: 18 } })
+<span class="kw">db.users.findOne</span>({ name: <span class="st">"Tom"</span> })
+
+<span class="cm"># 更新文档</span>
+<span class="kw">db.users.updateOne</span>({ name: <span class="st">"Tom"</span> }, { $set: { age: 26 } })
+
+<span class="cm"># 删除文档</span>
+<span class="kw">db.users.deleteOne</span>({ name: <span class="st">"Tom"</span> })
+
+<span class="cm"># 删除集合</span>
+<span class="kw">db.users.drop</span>()
+
+<span class="cm"># 删除数据库</span>
+<span class="kw">db.dropDatabase</span>()`,
+            label: 'mongosh'
+          }
+        ]
+      },
+      {
+        title: '创建管理员用户',
+        subs: [
+          {
+            title: '初始化 admin 账号',
+            code: `<span class="cm"># 连接到 admin 数据库</span>
+<span class="cmd">mongosh</span>
+<span class="kw">use</span> admin
+
+<span class="cm"># 创建超级管理员</span>
+<span class="kw">db.createUser</span>({
+  user: <span class="st">"admin"</span>,
+  pwd: <span class="st">"yourpassword"</span>,
+  roles: [{ role: <span class="st">"userAdminAnyDatabase"</span>, db: <span class="st">"admin"</span> }, <span class="st">"readWriteAnyDatabase"</span>]
+})
+
+<span class="cm"># 为应用创建专用用户</span>
+<span class="kw">use</span> myapp
+<span class="kw">db.createUser</span>({
+  user: <span class="st">"appuser"</span>,
+  pwd: <span class="st">"apppassword"</span>,
+  roles: [{ role: <span class="st">"readWrite"</span>, db: <span class="st">"myapp"</span> }]
+})`,
+            label: 'mongosh'
+          }
+        ]
+      },
+      {
+        title: '常用命令（以 articles 集合为例）',
+        subs: [
+          {
+            title: '插入',
+            code: `<span class="cm"># 插入单条文档</span>
+<span class="kw">db.articles.insertOne</span>({
+  title: <span class="st">"MongoDB 入门"</span>,
+  author: <span class="st">"Tom"</span>,
+  tags: [<span class="st">"db"</span>, <span class="st">"nosql"</span>],
+  views: 0,
+  createdAt: <span class="kw">new Date</span>()
+})
+
+<span class="cm"># 批量插入</span>
+<span class="kw">db.articles.insertMany</span>([
+  { title: <span class="st">"文章 A"</span>, author: <span class="st">"Alice"</span>, views: 100 },
+  { title: <span class="st">"文章 B"</span>, author: <span class="st">"Bob"</span>,   views: 200 }
+])`,
+            label: 'mongosh'
+          },
+          {
+            title: '查询',
+            code: `<span class="cm"># 查询全部</span>
+<span class="kw">db.articles.find</span>()
+
+<span class="cm"># 条件查询：views 大于 50</span>
+<span class="kw">db.articles.find</span>({ views: { $gt: 50 } })
+
+<span class="cm"># 多条件：author 为 Tom 且 views >= 100</span>
+<span class="kw">db.articles.find</span>({ author: <span class="st">"Tom"</span>, views: { $gte: 100 } })
+
+<span class="cm"># 数组包含查询：tags 包含 "nosql"</span>
+<span class="kw">db.articles.find</span>({ tags: <span class="st">"nosql"</span> })
+
+<span class="cm"># 字段投影：只返回 title 和 author，不返回 _id</span>
+<span class="kw">db.articles.find</span>({}, { title: 1, author: 1, _id: 0 })
+
+<span class="cm"># 排序、分页</span>
+<span class="kw">db.articles.find</span>().sort({ views: -1 }).skip(0).limit(10)
+
+<span class="cm"># 模糊查询（正则）</span>
+<span class="kw">db.articles.find</span>({ title: /MongoDB/ })
+
+<span class="cm"># 查询单条</span>
+<span class="kw">db.articles.findOne</span>({ author: <span class="st">"Tom"</span> })
+
+<span class="cm"># 统计数量</span>
+<span class="kw">db.articles.countDocuments</span>({ views: { $gt: 50 } })`,
+            label: 'mongosh'
+          },
+          {
+            title: '更新',
+            code: `<span class="cm"># 更新单条：将 Tom 的第一篇文章 views +1</span>
+<span class="kw">db.articles.updateOne</span>(
+  { author: <span class="st">"Tom"</span> },
+  { $inc: { views: 1 } }
+)
+
+<span class="cm"># 更新字段值</span>
+<span class="kw">db.articles.updateOne</span>(
+  { title: <span class="st">"MongoDB 入门"</span> },
+  { $set: { title: <span class="st">"MongoDB 完全指南"</span>, updatedAt: <span class="kw">new Date</span>() } }
+)
+
+<span class="cm"># 数组追加元素</span>
+<span class="kw">db.articles.updateOne</span>(
+  { title: <span class="st">"MongoDB 完全指南"</span> },
+  { $push: { tags: <span class="st">"tutorial"</span> } }
+)
+
+<span class="cm"># 批量更新：所有文章 views < 10 的设为 10</span>
+<span class="kw">db.articles.updateMany</span>(
+  { views: { $lt: 10 } },
+  { $set: { views: 10 } }
+)
+
+<span class="cm"># upsert：不存在则插入</span>
+<span class="kw">db.articles.updateOne</span>(
+  { title: <span class="st">"新文章"</span> },
+  { $set: { author: <span class="st">"Alice"</span>, views: 0 } },
+  { upsert: true }
+)`,
+            label: 'mongosh'
+          },
+          {
+            title: '删除',
+            code: `<span class="cm"># 删除单条</span>
+<span class="kw">db.articles.deleteOne</span>({ author: <span class="st">"Tom"</span> })
+
+<span class="cm"># 批量删除：views 为 0 的文章</span>
+<span class="kw">db.articles.deleteMany</span>({ views: 0 })
+
+<span class="cm"># 清空集合（保留集合结构）</span>
+<span class="kw">db.articles.deleteMany</span>({})`,
+            label: 'mongosh'
+          },
+          {
+            title: '索引',
+            code: `<span class="cm"># 查看现有索引</span>
+<span class="kw">db.articles.getIndexes</span>()
+
+<span class="cm"># 创建单字段索引</span>
+<span class="kw">db.articles.createIndex</span>({ author: 1 })
+
+<span class="cm"># 创建复合索引</span>
+<span class="kw">db.articles.createIndex</span>({ author: 1, createdAt: -1 })
+
+<span class="cm"># 创建唯一索引</span>
+<span class="kw">db.articles.createIndex</span>({ title: 1 }, { unique: true })
+
+<span class="cm"># 删除索引</span>
+<span class="kw">db.articles.dropIndex</span>(<span class="st">"author_1"</span>)
+
+<span class="cm"># 查看查询执行计划（是否命中索引）</span>
+<span class="kw">db.articles.find</span>({ author: <span class="st">"Tom"</span> }).explain(<span class="st">"executionStats"</span>)`,
+            label: 'mongosh'
+          },
+          {
+            title: '聚合',
+            code: `<span class="cm"># 按 author 分组，统计文章数和总浏览量</span>
+<span class="kw">db.articles.aggregate</span>([
+  { $group: {
+    _id: <span class="st">"$author"</span>,
+    count:     { $sum: 1 },
+    totalViews: { $sum: <span class="st">"$views"</span> }
+  }},
+  { $sort: { totalViews: -1 } }
+])
+
+<span class="cm"># 过滤后再聚合：只统计 views > 50 的文章</span>
+<span class="kw">db.articles.aggregate</span>([
+  { $match: { views: { $gt: 50 } } },
+  { $group: { _id: <span class="st">"$author"</span>, count: { $sum: 1 } } }
+])`,
+            label: 'mongosh'
+          },
+          {
+            title: '导出 / 导入',
+            code: `<span class="cm"># 导出集合为 JSON（命令行工具，非 mongosh）</span>
+<span class="cmd">mongoexport --db myapp --collection articles --out articles.json</span>
+
+<span class="cm"># 导入 JSON 到集合</span>
+<span class="cmd">mongoimport --db myapp --collection articles --file articles.json --jsonArray</span>
+
+<span class="cm"># 导出整个数据库</span>
+<span class="cmd">mongodump --db myapp --out ./backup</span>
+
+<span class="cm"># 恢复数据库</span>
+<span class="cmd">mongorestore --db myapp ./backup/myapp</span>`,
+            label: 'bash'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: 'Apple Silicon Mac 的 Homebrew 路径为 <code>/opt/homebrew</code>，Intel Mac 为 <code>/usr/local</code>，注意区分配置文件和数据目录位置。' },
+      { type: 'warning', text: '开启 <code>authorization: enabled</code> 前必须先创建管理员账号，否则重启后将无法登录。' },
+      { type: 'success', text: '使用 <code>brew services start mongodb-community</code> 启动的服务会随系统开机自动运行，无需手动配置 launchd。' }
+    ]
+  },
+
+  {
     id: 'redis',
     name: 'Redis 安装',
     group: '数据库安装',
@@ -1373,13 +1781,228 @@ WantedBy=multi-user.target</span>`,
       { type: 'info', text: 'Redis 默认将数据持久化到 <code>/var/lib/redis/dump.rdb</code>，重启不会丢失数据；如需更高持久性，可开启 AOF 模式。' }
     ]
   }
+
+,
+
+  {
+    id: 'rabbitmq-macos',
+    name: 'RabbitMQ (macOS)',
+    group: '中间件安装',
+    badge: 'RabbitMQ',
+    icon: '🐇',
+    tags: [{ label: 'RabbitMQ', type: 'warning' }, { label: 'macOS', type: 'info' }, { label: 'Homebrew', type: 'info' }],
+    summary: '在 macOS 上通过 Homebrew 安装 RabbitMQ，启用管理控制台，创建用户与虚拟主机，掌握常用运维命令。',
+    sections: [
+      {
+        title: '安装 RabbitMQ',
+        subs: [
+          {
+            title: '通过 Homebrew 安装（推荐）',
+            code: `<span class="cm"># 安装 RabbitMQ（会自动安装 Erlang 依赖）</span>
+<span class="cmd">brew install rabbitmq</span>
+
+<span class="cm"># 验证安装</span>
+<span class="cmd">rabbitmqctl version</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '配置环境变量',
+        subs: [
+          {
+            title: '将 sbin 加入 PATH（Intel Mac）',
+            code: `<span class="cm"># 追加到 ~/.zshrc 或 ~/.bash_profile</span>
+<span class="cmd">echo 'export PATH=$PATH:/usr/local/sbin' >> ~/.zshrc</span>
+<span class="cmd">source ~/.zshrc</span>`,
+            label: 'bash'
+          },
+          {
+            title: '将 sbin 加入 PATH（Apple Silicon M1/M2/M3）',
+            code: `<span class="cmd">echo 'export PATH=$PATH:/opt/homebrew/sbin' >> ~/.zshrc</span>
+<span class="cmd">source ~/.zshrc</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '服务管理',
+        subs: [
+          {
+            title: '启动 / 停止 / 重启',
+            code: `<span class="cm"># 后台启动（开机自启）</span>
+<span class="cmd">brew services start rabbitmq</span>
+
+<span class="cm"># 停止服务</span>
+<span class="cmd">brew services stop rabbitmq</span>
+
+<span class="cm"># 重启服务</span>
+<span class="cmd">brew services restart rabbitmq</span>
+
+<span class="cm"># 查看运行状态</span>
+<span class="cmd">brew services list | grep rabbitmq</span>`,
+            label: 'bash'
+          },
+          {
+            title: '手动启动（前台，调试用）',
+            code: `<span class="cm"># Intel Mac</span>
+<span class="cmd">CONF_ENV_FILE="/usr/local/etc/rabbitmq/rabbitmq-env.conf" /usr/local/sbin/rabbitmq-server</span>
+
+<span class="cm"># Apple Silicon</span>
+<span class="cmd">CONF_ENV_FILE="/opt/homebrew/etc/rabbitmq/rabbitmq-env.conf" /opt/homebrew/sbin/rabbitmq-server</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '启用管理控制台（Web UI）',
+        subs: [
+          {
+            title: '开启 management 插件',
+            code: `<span class="cm"># 启用 Web 管理界面（15672 端口）</span>
+<span class="cmd">rabbitmq-plugins enable rabbitmq_management</span>
+
+<span class="cm"># 重启使插件生效</span>
+<span class="cmd">brew services restart rabbitmq</span>`,
+            label: 'bash'
+          },
+          {
+            title: '访问管理控制台',
+            code: `<span class="cm"># 浏览器打开管理界面</span>
+<span class="st">http://localhost:15672/</span>
+
+<span class="cm"># 默认账号</span>
+<span class="kw">用户名：</span><span class="st">guest</span>
+<span class="kw">密  码：</span><span class="st">guest</span>
+
+<span class="cm"># 注意：guest 账号仅允许从 localhost 登录</span>
+<span class="cm"># 远程访问需创建新用户（见下方"用户与虚拟主机管理"）</span>`,
+            label: '管理控制台'
+          }
+        ]
+      },
+      {
+        title: '用户与虚拟主机管理',
+        subs: [
+          {
+            title: '创建用户并授权',
+            code: `<span class="cm"># 添加新用户</span>
+<span class="cmd">rabbitmqctl add_user myuser mypassword</span>
+
+<span class="cm"># 设置为管理员角色</span>
+<span class="cmd">rabbitmqctl set_user_tags myuser administrator</span>
+
+<span class="cm"># 查看所有用户</span>
+<span class="cmd">rabbitmqctl list_users</span>
+
+<span class="cm"># 修改密码</span>
+<span class="cmd">rabbitmqctl change_password myuser newpassword</span>
+
+<span class="cm"># 删除用户</span>
+<span class="cmd">rabbitmqctl delete_user myuser</span>`,
+            label: 'bash'
+          },
+          {
+            title: '创建虚拟主机并授权',
+            code: `<span class="cm"># 创建虚拟主机（隔离不同项目的消息环境）</span>
+<span class="cmd">rabbitmqctl add_vhost /myapp</span>
+
+<span class="cm"># 授权用户对该 vhost 的读写配置权限</span>
+<span class="cmd">rabbitmqctl set_permissions -p /myapp myuser ".*" ".*" ".*"</span>
+
+<span class="cm"># 查看 vhost 列表</span>
+<span class="cmd">rabbitmqctl list_vhosts</span>
+
+<span class="cm"># 查看某 vhost 下的权限</span>
+<span class="cmd">rabbitmqctl list_permissions -p /myapp</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '常用运维命令',
+        subs: [
+          {
+            title: '队列 / 连接 / 通道查看',
+            code: `<span class="cm"># 查看所有队列（含消息数量）</span>
+<span class="cmd">rabbitmqctl list_queues name messages consumers</span>
+
+<span class="cm"># 查看当前连接</span>
+<span class="cmd">rabbitmqctl list_connections</span>
+
+<span class="cm"># 查看通道</span>
+<span class="cmd">rabbitmqctl list_channels</span>
+
+<span class="cm"># 查看 Exchange 列表</span>
+<span class="cmd">rabbitmqctl list_exchanges</span>
+
+<span class="cm"># 查看绑定关系</span>
+<span class="cmd">rabbitmqctl list_bindings</span>`,
+            label: 'bash'
+          },
+          {
+            title: '清空队列 / 查看节点状态',
+            code: `<span class="cm"># 清空指定队列的所有消息</span>
+<span class="cmd">rabbitmqctl purge_queue my_queue</span>
+
+<span class="cm"># 查看节点运行状态（内存、进程数等）</span>
+<span class="cmd">rabbitmqctl status</span>
+
+<span class="cm"># 查看集群状态</span>
+<span class="cmd">rabbitmqctl cluster_status</span>`,
+            label: 'bash'
+          }
+        ]
+      },
+      {
+        title: '配置文件位置',
+        subs: [
+          {
+            title: '默认配置路径',
+            code: `<span class="cm"># Intel Mac</span>
+<span class="st">/usr/local/etc/rabbitmq/rabbitmq.conf</span>
+
+<span class="cm"># Apple Silicon (M1/M2/M3)</span>
+<span class="st">/opt/homebrew/etc/rabbitmq/rabbitmq.conf</span>
+
+<span class="cm"># 日志目录（Intel）</span>
+<span class="st">/usr/local/var/log/rabbitmq/</span>
+
+<span class="cm"># 日志目录（Apple Silicon）</span>
+<span class="st">/opt/homebrew/var/log/rabbitmq/</span>`,
+            label: 'bash'
+          },
+          {
+            title: 'rabbitmq.conf 常用配置',
+            code: `<span class="cm"># 修改默认端口（AMQP 协议端口）</span>
+listeners.tcp.default = 5672
+
+<span class="cm"># 修改管理界面端口</span>
+management.tcp.port = 15672
+
+<span class="cm"># 设置默认 vhost（Spring Boot 连接时用）</span>
+default_vhost = /
+
+<span class="cm"># 内存使用上限（超过则触发流控）</span>
+vm_memory_high_watermark.relative = 0.4`,
+            label: 'rabbitmq.conf'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: 'Apple Silicon Mac 的 Homebrew 路径为 <code>/opt/homebrew/sbin</code>，Intel Mac 为 <code>/usr/local/sbin</code>，<code>rabbitmqctl</code> 命令需要对应路径在 PATH 中才能直接使用。' },
+      { type: 'warning', text: '默认 <code>guest</code> 账号只允许从 <code>localhost</code> 登录。生产环境或远程连接需创建新用户并通过防火墙限制 5672 / 15672 端口的访问来源。' },
+      { type: 'success', text: 'Spring Boot 连接 RabbitMQ 时，<code>spring.rabbitmq.virtual-host</code> 必须与 <code>rabbitmqctl add_vhost</code> 创建的 vhost 名称完全一致，默认为 <code>/</code>。' }
+    ]
+  }
 ];
 
 // ── Build sidebar nav ────────────────────────────────────────────────
 const sidebarNav = document.getElementById('sidebar-nav');
 const groups = [...new Set(pages.map(p => p.group))];
 
-const groupIcon = { '部署': '📦', '数据库安装': '🗄️' };
+const groupIcon = { '部署': '📦', '数据库安装': '🗄️', '中间件安装': '📨' };
 
 groups.forEach(group => {
   const groupEl = document.createElement('div');
@@ -1536,7 +2159,10 @@ mq.addEventListener('change', e => applyMobileLayout(e.matches));
 applyMobileLayout(mq.matches);
 
 // ── Init: select first page ──────────────────────────────────────────
-selectPage(pages[0].id);
+const _urlTopic = new URLSearchParams(location.search).get('topic');
+selectPage(_urlTopic || pages[0].id);
+
+initFilterModal('deployment', selectPage);
 </script>
 </body>
 </html>

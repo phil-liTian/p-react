@@ -18,6 +18,7 @@ export default defineConfig({
         tools: resolve(__dirname, 'demo/tools.html'),
         java: resolve(__dirname, 'demo/java.html'),
         knowledge: resolve(__dirname, 'demo/knowledge.html'),
+        'ai-coding': resolve(__dirname, 'demo/ai-coding.html'),
       },
     },
   },

@@ -102,4 +102,7 @@ mq.addEventListener('change', e => applyMobileLayout(e.matches));
 applyMobileLayout(mq.matches);
 
 // Init: select first topic
-selectTopic(topics[0].id);
+const _urlTopic = new URLSearchParams(location.search).get('topic');
+selectTopic(_urlTopic || topics[0].id);
+
+initFilterModal('java', selectTopic);

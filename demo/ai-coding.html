@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>p-react · 前端知识库</title>
+  <title>p-react · AI Coding 实践</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -17,9 +17,9 @@
       --text-primary: #e6edf3;
       --text-secondary: #8b949e;
       --text-muted: #484f58;
-      --accent: #7c3aed;
-      --accent-light: #a78bfa;
-      --accent-glow: rgba(124, 58, 237, 0.15);
+      --accent: #0ea5e9;
+      --accent-light: #7dd3fc;
+      --accent-glow: rgba(14, 165, 233, 0.15);
       --red: #f85149;
       --red-glow: rgba(248, 81, 73, 0.12);
       --yellow: #d29922;
@@ -28,6 +28,8 @@
       --green-glow: rgba(63, 185, 80, 0.12);
       --blue: #58a6ff;
       --blue-glow: rgba(88, 166, 255, 0.12);
+      --purple: #a78bfa;
+      --purple-glow: rgba(167, 139, 250, 0.12);
       --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
     }
@@ -67,15 +69,12 @@
     .logo-hexagon {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      background: linear-gradient(135deg, var(--accent), #6366f1);
       border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.5px;
       flex-shrink: 0;
     }
 
@@ -84,9 +83,9 @@
     .logo-badge {
       font-size: 10px;
       font-weight: 600;
-      color: var(--blue);
-      background: rgba(88, 166, 255, 0.1);
-      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+      border: 1px solid rgba(14, 165, 233, 0.3);
       border-radius: 4px;
       padding: 1px 6px;
       letter-spacing: 0.5px;
@@ -165,7 +164,8 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      background: var(--bg-elevated); }
+      background: var(--bg-elevated);
+    }
 
     .content-header {
       display: flex;
@@ -208,7 +208,7 @@
     .article { display: none; }
     .article.active { display: block; }
 
-    /* ── Article card ── */
+    /* ── Article header ── */
     .article-header {
       display: flex;
       align-items: flex-start;
@@ -216,13 +216,7 @@
       margin-bottom: 20px;
     }
 
-    .article-icon {
-      font-size: 28px;
-      line-height: 1;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
+    .article-icon { font-size: 28px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
     .article-meta { flex: 1; }
 
     .article-title {
@@ -244,11 +238,12 @@
       text-transform: uppercase;
     }
 
-    .tag-danger { color: var(--red); background: var(--red-glow); border: 1px solid rgba(248,81,73,0.25); }
+    .tag-danger  { color: var(--red);    background: var(--red-glow);    border: 1px solid rgba(248,81,73,0.25); }
     .tag-warning { color: var(--yellow); background: var(--yellow-glow); border: 1px solid rgba(210,153,34,0.25); }
-    .tag-info { color: var(--blue); background: var(--blue-glow); border: 1px solid rgba(88,166,255,0.25); }
-    .tag-success { color: var(--green); background: var(--green-glow); border: 1px solid rgba(63,185,80,0.25); }
-    .tag-accent { color: var(--accent-light); background: var(--accent-glow); border: 1px solid rgba(124,58,237,0.3); }
+    .tag-info    { color: var(--blue);   background: var(--blue-glow);   border: 1px solid rgba(88,166,255,0.25); }
+    .tag-success { color: var(--green);  background: var(--green-glow);  border: 1px solid rgba(63,185,80,0.25); }
+    .tag-accent  { color: var(--accent-light); background: var(--accent-glow); border: 1px solid rgba(14,165,233,0.3); }
+    .tag-purple  { color: var(--purple); background: var(--purple-glow); border: 1px solid rgba(167,139,250,0.25); }
 
     .article-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
 
@@ -305,24 +300,18 @@
       font-family: var(--font-code);
     }
 
-    .code-block-label-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot-red { background: var(--red); }
-    .dot-green { background: var(--green); }
+    .code-block-label-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-red    { background: var(--red); }
+    .dot-green  { background: var(--green); }
     .dot-yellow { background: var(--yellow); }
-    .dot-blue { background: var(--blue); }
+    .dot-blue   { background: var(--blue); }
+    .dot-cyan   { background: var(--accent); }
+    .dot-purple { background: var(--purple); }
 
     .code-block-label-text { color: var(--text-secondary); }
 
     .code-block-wrap pre { margin: 0; padding: 16px 18px; background: var(--bg-base) !important; }
-    .code-block-wrap code {
-      font-family: var(--font-code) !important;
-      font-size: 12px !important;
-      line-height: 1.7 !important;
-    }
+    .code-block-wrap code { font-family: var(--font-code) !important; font-size: 12px !important; line-height: 1.7 !important; }
     .code-block-wrap .hljs { background: var(--bg-base) !important; }
 
     /* ── Rule box ── */
@@ -335,70 +324,136 @@
       line-height: 1.7;
     }
 
-    .rule-box-danger {
-      background: var(--red-glow);
-      border-color: var(--red);
-      color: #ffa8a8;
-    }
-
-    .rule-box-warning {
-      background: var(--yellow-glow);
-      border-color: var(--yellow);
-      color: #f0c070;
-    }
-
-    .rule-box-info {
-      background: var(--blue-glow);
-      border-color: var(--blue);
-      color: #a0c8ff;
-    }
-
-    .rule-box-success {
-      background: var(--green-glow);
-      border-color: var(--green);
-      color: #90dca0;
-    }
+    .rule-box-danger  { background: var(--red-glow);    border-color: var(--red);    color: #ffa8a8; }
+    .rule-box-warning { background: var(--yellow-glow); border-color: var(--yellow); color: #f0c070; }
+    .rule-box-info    { background: var(--blue-glow);   border-color: var(--blue);   color: #a0c8ff; }
+    .rule-box-success { background: var(--green-glow);  border-color: var(--green);  color: #90dca0; }
+    .rule-box-accent  { background: var(--accent-glow); border-color: var(--accent); color: #7dd3fc; }
+    .rule-box-purple  { background: var(--purple-glow); border-color: var(--purple); color: #c4b5fd; }
 
     .rule-box strong { color: inherit; font-weight: 700; }
-    .rule-box code {
-      font-family: var(--font-code);
-      font-size: 11.5px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 3px;
-      padding: 1px 5px;
-    }
+    .rule-box code { font-family: var(--font-code); font-size: 11.5px; background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 5px; }
 
-    /* ── Metrics table ── */
-    .metrics-table {
-      width: 100%;
-      border-collapse: collapse;
+    /* ── Compare card ── */
+    .compare-card {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
       font-size: 13px;
-      margin-top: 8px;
     }
 
-    .metrics-table thead tr { border-bottom: 1px solid var(--border); }
-    .metrics-table th {
-      text-align: left;
-      padding: 6px 12px;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-    }
-    .metrics-table td {
-      padding: 9px 12px;
+    .compare-card-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      background: var(--bg-overlay);
       border-bottom: 1px solid var(--border);
-      color: var(--text-secondary);
-      vertical-align: top;
-      line-height: 1.6;
     }
-    .metrics-table tr:last-child td { border-bottom: none; }
-    .metrics-table td:first-child {
+
+    .compare-card-header-cell {
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .compare-card-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .compare-card-row:last-child { border-bottom: none; }
+    .compare-card-row:hover { background: var(--bg-overlay); }
+
+    .compare-card-cell {
+      padding: 10px 14px;
+      line-height: 1.5;
       font-family: var(--font-code);
-      font-size: 11.5px;
-      color: var(--accent-light);
-      white-space: nowrap;
+      font-size: 12px;
     }
+
+    .compare-card-cell.desc {
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Key-value list ── */
+    .kv-list { margin-bottom: 14px; }
+
+    .kv-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+    .kv-row:last-child { border-bottom: none; }
+
+    .kv-key {
+      min-width: 130px;
+      flex-shrink: 0;
+      font-weight: 600;
+      color: var(--accent-light);
+      font-family: var(--font-code);
+      font-size: 12px;
+      padding-top: 2px;
+    }
+
+    .kv-val { color: var(--text-secondary); line-height: 1.6; }
+    .kv-val strong { color: var(--text-primary); }
+
+    /* ── Step list ── */
+    .step-list { margin-bottom: 14px; }
+
+    .step-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .step-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: var(--accent-light);
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-body { flex: 1; }
+    .step-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .step-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+
+    /* ── Card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .card-item {
+      background: var(--bg-overlay);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      transition: border-color 0.15s;
+    }
+    .card-item:hover { border-color: var(--text-muted); }
+
+    .card-item-icon { font-size: 18px; margin-bottom: 8px; }
+    .card-item-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+    .card-item-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
 
     /* ── Mobile ── */
     .menu-toggle {
@@ -463,6 +518,11 @@
       .content { height: calc(100vh - 48px); }
       .article-wrapper { padding: 20px 16px 40px; }
       .nav-item { padding: 11px 16px; font-size: 14px; }
+      .compare-card-header,
+      .compare-card-row { grid-template-columns: 1fr 1fr; }
+      .compare-card-header-cell.desc,
+      .compare-card-cell.desc { display: none; }
+      .card-grid { grid-template-columns: 1fr; }
     }
 
     /* ── Filter Modal ── */
@@ -530,34 +590,34 @@
   <!-- Mobile Topbar -->
   <div class="mobile-topbar" id="mobile-topbar" style="display:none">
     <button class="menu-toggle" id="menu-toggle-top" aria-label="打开菜单">☰</button>
-    <span class="mobile-topbar-title" id="mobile-topbar-title">前端知识库</span>
+    <span class="mobile-topbar-title" id="mobile-topbar-title">AI Coding 实践</span>
   </div>
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar-el">
     <div class="sidebar-logo">
-      <div class="logo-hexagon">p</div>
-      <span class="logo-text">p-react</span>
-      <span class="logo-badge">knowledge</span>
+      <div class="logo-hexagon">🤖</div>
+      <span class="logo-text">AI Coding</span>
+      <span class="logo-badge">实践</span>
       <div style="flex:1"></div>
       <button class="menu-toggle" id="sidebar-close" aria-label="关闭菜单" style="display:none">✕</button>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-      <a class="back-link" href="../hub.html">← 返回 Hub</a>
+      <a class="back-link" href="hub.html">← 返回首页</a>
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="content">
     <div class="content-header">
-      <span class="content-header-icon">📚</span>
-      <span class="content-header-label">前端知识库</span>
+      <span class="content-header-icon">🤖</span>
+      <span class="content-header-label">AI Coding</span>
       <span class="content-header-dot">·</span>
       <span class="content-header-name" id="content-header-name">选择左侧条目</span>
       <div class="content-header-spacer"></div>
       <button class="filter-btn" id="filter-btn">⌘ 筛选 <span class="filter-btn-kbd">K</span></button>
-      <span class="content-header-badge" id="content-header-badge">性能优化</span>
+      <span class="content-header-badge" id="content-header-badge">实践</span>
     </div>
     <div class="article-wrapper" id="article-wrapper"></div>
   </main>
@@ -573,9 +633,9 @@
   </div>
 </div>
 
-<script src="/knowledge/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="/global-topics.js"></script>
-<script src="/knowledge/data.js"></script>
-<script src="/knowledge/app.js"></script>
+<script src="/ai-coding/data.js"></script>
+<script src="/ai-coding/app.js"></script>
 </body>
 </html>

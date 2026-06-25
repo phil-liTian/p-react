@@ -1,40 +1,38 @@
 // ── Lazy script loader ────────────────────────────────────────────────────────
 
-// 'switch-hosts' → 'renderSwitchHosts'
 function getRendererName(id) {
   return 'render' + id.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('');
 }
 
-const renderedTools = new Set();
+const renderedTopics = new Set();
 
 function loadScript(id) {
   return new Promise((resolve, reject) => {
     if (typeof window[getRendererName(id)] === 'function') { resolve(); return; }
     const s = document.createElement('script');
-    s.src = '/tools/' + id + '.js';
+    s.src = '/ai-coding/' + id + '.js';
     s.onload = resolve;
     s.onerror = () => reject(new Error('Failed to load: ' + id));
     document.head.appendChild(s);
   });
 }
 
-async function renderToolOnDemand(t) {
-  if (renderedTools.has(t.id)) return;
+async function renderArticleOnDemand(t) {
+  if (renderedTopics.has(t.id)) return;
   await loadScript(t.id);
   const el = document.createElement('div');
-  el.className = 'pitfall';
-  el.id = 'tool-' + t.id;
+  el.className = 'article';
+  el.id = 'article-' + t.id;
   el.innerHTML = window[getRendererName(t.id)](t);
   document.getElementById('article-wrapper').appendChild(el);
   el.querySelectorAll('pre code').forEach(code => hljs.highlightElement(code));
-  renderedTools.add(t.id);
+  renderedTopics.add(t.id);
 }
 
 // ── Build sidebar nav ─────────────────────────────────────────────────────────
 
 const sidebarNav = document.getElementById('sidebar-nav');
-const groups = [...new Set(tools.map(t => t.group))];
-const typeIcon = { info: '🔵', accent: '🟣' };
+const groups = [...new Set(topics.map(t => t.group))];
 
 groups.forEach(group => {
   const groupEl = document.createElement('div');
@@ -45,12 +43,12 @@ groups.forEach(group => {
   label.textContent = group;
   groupEl.appendChild(label);
 
-  tools.filter(t => t.group === group).forEach(t => {
+  topics.filter(t => t.group === group).forEach(t => {
     const item = document.createElement('div');
     item.className = 'nav-item';
     item.dataset.id = t.id;
-    item.innerHTML = `<span class="nav-sev">${typeIcon[t.type] || ''}</span>${t.name}`;
-    item.addEventListener('click', () => selectTool(t.id));
+    item.innerHTML = `<span class="nav-item-icon">${t.icon}</span>${t.name}`;
+    item.addEventListener('click', () => selectTopic(t.id));
     groupEl.appendChild(item);
   });
 
@@ -59,28 +57,21 @@ groups.forEach(group => {
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 
-async function selectTool(id) {
-  const t = tools.find(x => x.id === id);
+async function selectTopic(id) {
+  const t = topics.find(x => x.id === id);
   if (!t) return;
 
-  await renderToolOnDemand(t);
+  await renderArticleOnDemand(t);
 
   document.querySelectorAll('.nav-item').forEach(el =>
     el.classList.toggle('active', el.dataset.id === id));
-  document.querySelectorAll('.pitfall').forEach(el =>
-    el.classList.toggle('active', el.id === 'tool-' + id));
+  document.querySelectorAll('.article').forEach(el =>
+    el.classList.toggle('active', el.id === 'article-' + id));
 
   document.getElementById('content-header-name').textContent = t.name;
-
-  const badge = document.getElementById('content-header-badge');
-  const badgeMap = { info: { text: '日常', color: 'var(--blue)' }, accent: { text: 'AI 工具', color: 'var(--accent-light)' } };
-  const b = badgeMap[t.type] || {};
-  badge.textContent = b.text || '';
-  badge.style.color = b.color || '';
-  badge.style.borderColor = b.color || '';
-
-  document.getElementById('article-wrapper').scrollTop = 0;
+  document.getElementById('content-header-badge').textContent = t.group;
   document.getElementById('mobile-topbar-title').textContent = t.name;
+  document.getElementById('article-wrapper').scrollTop = 0;
   closeSidebar();
 }
 
@@ -109,8 +100,8 @@ function applyMobileLayout(isMobile) {
 mq.addEventListener('change', e => applyMobileLayout(e.matches));
 applyMobileLayout(mq.matches);
 
-// Init: select first tool
+// Init: select first topic
 const _urlTopic = new URLSearchParams(location.search).get('topic');
-selectTool(_urlTopic || tools[0].id);
+selectTopic(_urlTopic || topics[0].id);
 
-initFilterModal('tools', selectTool);
+initFilterModal('ai-coding', selectTopic);

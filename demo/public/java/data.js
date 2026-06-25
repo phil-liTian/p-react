@@ -220,6 +220,19 @@ const topics = [
     ],
   },
   {
+    id: 'rabbitmq',
+    name: 'RabbitMQ 消息队列',
+    group: '📨 消息队列',
+    type: 'warning',
+    icon: '🐇',
+    tags: [
+      { label: 'RabbitMQ', type: 'warning' },
+      { label: 'Exchange', type: 'accent' },
+      { label: '消息确认', type: 'info' },
+      { label: '死信队列', type: 'danger' },
+    ],
+  },
+  {
     id: 'mybatis-dynamic-sql',
     name: 'MyBatis 动态 SQL',
     group: '🗄️ 数据库',
