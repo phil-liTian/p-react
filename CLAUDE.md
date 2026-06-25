@@ -1,7 +1,55 @@
-<!--
- * @Author: phil
- * @Date: 2026-06-03 22:39:17
--->
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## 常用命令
+
+```bash
+pnpm install        # 安装依赖（根目录 + workspace 子包）
+pnpm dev            # 启动 Vite 开发服务器（根为 demo/）
+pnpm build          # 构建所有 demo 页面
+pnpm preview        # 预览构建产物
+```
+
+> 无测试脚本，在 `demo/` 目录下的 `.ts` 文件中手动验证实现。
+
+## 高层架构
+
+### 包依赖关系
+
+```
+react-dom
+  └── react-reconciler  (通过 hostConfig 注入 DOM 操作)
+        └── shared      (Fiber 标志、Lane、WorkTags)
+react
+  └── react-reconciler  (Hooks 由 reconciler 实现，react 包只做转发)
+```
+
+- `packages/react-reconciler/` 是核心，通过**工厂函数模式**（`createWorkLoop(hostConfig)`）解耦渲染器，使 reconciler 本身不依赖 DOM。
+- `packages/react-dom/` 提供具体的 `hostConfig`（`createElement`、`insertBefore` 等 DOM 操作），传入 reconciler 后返回宿主级 API。
+- `packages/shared/` 存放跨包的枚举常量（`WorkTags`、`Flags`、`Lane`、`HookEffectTags`），不含业务逻辑。
+- `packages/react/` 仅导出公共 API，Hooks 实际实现全部在 `react-reconciler/src/fiberHooks.ts`。
+
+### demo 目录
+
+- `demo/0x_*.ts` — 按主题递进的手动测试脚本，对应 `demo/index.html` 中的入口选择器。
+- `demo/*.html` — 独立知识展示页（hub、deployment、java、knowledge、tools 等），通过 `vite.config.ts` 的 `rollupOptions.input` 多入口构建。
+- `demo/public/` — 各 HTML 页面的模块化 JS 数据文件（按需加载）。
+
+### 关键文件映射
+
+| p-react 文件 | 对应 React 源码 |
+|---|---|
+| `react-reconciler/src/workLoop.ts` | `ReactFiberWorkLoop.js` |
+| `react-reconciler/src/beginWork.ts` | `ReactFiberBeginWork.js` |
+| `react-reconciler/src/completeWork.ts` | `ReactFiberCompleteWork.js` |
+| `react-reconciler/src/commitWork.ts` | `ReactFiberCommitWork.js` |
+| `react-reconciler/src/fiberHooks.ts` | `ReactFiberHooks.js` |
+| `react-reconciler/src/fiber.ts` | `ReactFiber.js` |
+| `shared/Lane.ts` | `ReactFiberLane.js` |
+
+---
+
 # AI 导师角色定义
 
 ## 角色
