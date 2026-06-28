@@ -25,6 +25,44 @@ const topics = [
       { label: '对比', type: 'warning' },
     ],
   },
+  {
+    id: 'python-keywords',
+    name: 'Python 关键字速查',
+    group: '🐍 语法基础',
+    type: 'success',
+    icon: '🔑',
+    tags: [
+      { label: '关键字', type: 'accent' },
+      { label: '语法', type: 'info' },
+      { label: '速查', type: 'success' },
+    ],
+  },
+  {
+    id: 'python-crawler',
+    name: 'Python 爬虫',
+    group: '🕷️ 爬虫',
+    type: 'warning',
+    icon: '🕷️',
+    tags: [
+      { label: '爬虫', type: 'accent' },
+      { label: 'requests', type: 'info' },
+      { label: 'Playwright', type: 'success' },
+      { label: 'Scrapy', type: 'warning' },
+    ],
+  },
+  {
+    id: 'rag-basics',
+    name: 'RAG 基础概念',
+    group: '🤖 AI 应用',
+    type: 'info',
+    icon: '🔍',
+    tags: [
+      { label: 'RAG', type: 'accent' },
+      { label: 'Embedding', type: 'info' },
+      { label: '向量检索', type: 'success' },
+      { label: 'LLM', type: 'warning' },
+    ],
+  },
 ];
 
 // ── Shared helpers ────────────────────────────────────────────────────────────

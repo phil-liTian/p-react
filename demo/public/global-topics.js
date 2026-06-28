@@ -121,8 +121,11 @@ const globalTopics = [
   { id: 'rabbitmq-macos',  name: 'RabbitMQ (macOS)',  group: '中间件',  icon: '🐇', page: 'deployment' },
 
   // ── Python 视角 ──
-  { id: 'python-overview', name: 'Python 概述',     group: '概述',   icon: '🐍', page: 'python' },
-  { id: 'uv-vs-npm',       name: 'uv vs npm',       group: '工具链', icon: '📦', page: 'python' },
+  { id: 'python-overview',  name: 'Python 概述',         group: '概述',   icon: '🐍', page: 'python' },
+  { id: 'uv-vs-npm',        name: 'uv vs npm',           group: '工具链', icon: '📦', page: 'python' },
+  { id: 'python-keywords',  name: 'Python 关键字速查',   group: '语法基础', icon: '🔑', page: 'python' },
+  { id: 'python-crawler',   name: 'Python 爬虫',         group: '爬虫',     icon: '🕷️', page: 'python' },
+  { id: 'rag-basics',       name: 'RAG 基础概念',         group: 'AI 应用',  icon: '🔍', page: 'python' },
 
   // ── 踩坑指南 ──
   { id: 'stale-closure',      name: 'useEffect 闭包陷阱',             group: 'Hooks',    icon: '🪤', page: 'pitfalls' },
