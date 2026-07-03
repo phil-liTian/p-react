@@ -139,6 +139,19 @@ const topics = [
     ],
   },
   {
+    id: 'claude-code-hooks',
+    name: 'Claude Code Hooks 及用途',
+    group: '🧠 方法篇',
+    type: 'success',
+    icon: '🪝',
+    tags: [
+      { label: 'Hook', type: 'success' },
+      { label: '硬约束', type: 'warning' },
+      { label: 'settings.json', type: 'info' },
+      { label: '自动化', type: 'accent' },
+    ],
+  },
+  {
     id: 'limits-risks',
     name: '边界与风险',
     group: '⚠️ 风险篇',

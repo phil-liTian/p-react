@@ -81,6 +81,7 @@ const globalTopics = [
   { id: 'skill-recommendations',       name: 'AI Coding Skill 推荐',  group: '方法篇', icon: '⚡', page: 'ai-coding' },
   { id: 'claude-md-best-practices',   name: 'CLAUDE.md 最佳实践',             group: '方法篇', icon: '📄', page: 'ai-coding' },
   { id: 'claude-md-examples',         name: 'CLAUDE.md 编写示例（前端 & 后端）', group: '方法篇', icon: '📝', page: 'ai-coding' },
+  { id: 'claude-code-hooks',          name: 'Claude Code Hooks 及用途',           group: '方法篇', icon: '🪝', page: 'ai-coding' },
   { id: 'limits-risks',               name: '边界与风险',             group: '风险篇', icon: '⚠️', page: 'ai-coding' },
 
   // ── Java 视角 ──
