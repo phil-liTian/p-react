@@ -110,6 +110,15 @@ const globalTopics = [
   { id: 'java-utils',                  name: '通用工具类',                    group: 'Java 基础', icon: '🧰', page: 'java' },
   { id: 'java-lambda',                 name: 'Lambda 与函数式接口',           group: 'Java 基础', icon: '🔧', page: 'java' },
   { id: 'java-stream',                 name: 'Stream 分组、统计、过滤',       group: 'Java 基础', icon: '🌊', page: 'java' },
+  { id: 'distributed-system-overview', name: '分布式系统基础',                group: '分布式',   icon: '🌐', page: 'java' },
+  { id: 'cluster-vs-distributed',      name: '集群 vs 分布式',                group: '分布式',   icon: '🏗️', page: 'java' },
+  { id: 'cap-base-theorem',            name: 'CAP 与 BASE 理论',             group: '分布式',   icon: '⚖️', page: 'java' },
+  { id: 'distributed-transaction',     name: '分布式事务方案',                group: '分布式',   icon: '🔄', page: 'java' },
+  { id: 'distributed-id',              name: '分布式 ID 生成',                group: '分布式',   icon: '🆔', page: 'java' },
+  { id: 'middleware-overview',         name: '什么是中间件',                  group: '中间件',   icon: '🧩', page: 'java' },
+  { id: 'nacos',                       name: 'Nacos 服务发现与配置中心',      group: '中间件',   icon: '🗂️', page: 'java' },
+  { id: 'rabbitmq-vs-kafka',           name: 'RabbitMQ vs Kafka',             group: '中间件',   icon: '🐇', page: 'java' },
+  { id: 'idempotency',                 name: '幂等性处理机制',                group: '分布式',   icon: '🔁', page: 'java' },
 
   // ── 部署指南 ──
   { id: 'node-pm2',        name: 'Node.js + PM2',    group: '部署',    icon: '🚀', page: 'deployment' },
@@ -120,6 +129,7 @@ const globalTopics = [
   { id: 'redis',           name: 'Redis 安装',        group: '数据库',  icon: '🔴', page: 'deployment' },
   { id: 'postgresql',      name: 'PostgreSQL 安装',   group: '数据库',  icon: '🐘', page: 'deployment' },
   { id: 'rabbitmq-macos',  name: 'RabbitMQ (macOS)',  group: '中间件',  icon: '🐇', page: 'deployment' },
+  { id: 'k8s-overview',    name: 'K8s 是什么',        group: '容器编排', icon: '☸️', page: 'deployment' },
 
   // ── Python 视角 ──
   { id: 'python-overview',  name: 'Python 概述',         group: '概述',   icon: '🐍', page: 'python' },

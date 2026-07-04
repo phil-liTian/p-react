@@ -2160,6 +2160,227 @@ vm_memory_high_watermark.relative = 0.4`,
       { type: 'warning', text: 'Ubuntu 开放远程连接（<code>listen_addresses = \'*\'</code>）后，务必在 <code>pg_hba.conf</code> 中限制允许的 IP 范围，并在防火墙只开放受信任来源访问 5432 端口，避免数据库暴露在公网。' },
       { type: 'success', text: 'PostgreSQL 默认端口 <code>5432</code>，与 MySQL 的 <code>3306</code> 不同。连接字符串格式：<code>postgresql://myuser:password@localhost:5432/myapp</code>。' }
     ]
+  },
+
+  {
+    id: 'k8s-overview',
+    name: 'K8s 是什么',
+    group: '容器编排',
+    badge: 'K8s',
+    icon: '☸️',
+    tags: [{ label: 'Kubernetes', type: 'info' }, { label: '容器编排', type: 'success' }, { label: '集群', type: 'warning' }],
+    summary: 'Kubernetes（简称 K8s）是用于自动部署、扩展和管理容器化应用的开源平台。本节梳理它的核心作用、关键概念与典型场景，帮助你建立整体认知。',
+    sections: [
+      {
+        title: '什么是 K8s',
+        subs: [
+          {
+            title: '一句话定义',
+            code: `<span class="cm"># Kubernetes = 容器编排系统（Container Orchestrator）</span>
+<span class="cm"># 由 Google 基于内部 Borg 系统开源，CNCF 托管</span>
+
+<span class="kw">K8s 负责：</span>
+  <span class="st">把一堆容器按预期跑起来，并让它们持续保持预期状态</span>
+
+<span class="kw">不负责：</span>
+  <span class="st">不构建镜像、不写应用代码、不替代 CI/CD</span>`,
+            label: '概念'
+          },
+          {
+            title: '为什么需要 K8s',
+            code: `<span class="cm"># 单机 Docker 时代的痛点：</span>
+<span class="st">1. 容器挂了没人自动重启</span>
+<span class="st">2. 流量大了不能自动扩容</span>
+<span class="st">3. 多机部署要手动 ssh + docker run</span>
+<span class="st">4. 滚动发布、回滚全靠人肉操作</span>
+
+<span class="cm"># K8s 把上述问题统一抽象成"声明式 API"：</span>
+<span class="kw">你写"期望状态"，K8s 负责把它变成"实际状态"</span>`,
+            label: '动机'
+          }
+        ]
+      },
+      {
+        title: 'K8s 的核心作用',
+        subs: [
+          {
+            title: '五大核心能力',
+            code: `<span class="kw">1. 自动调度</span>     <span class="cm"># 决定容器跑在哪个节点，均衡资源</span>
+<span class="kw">2. 自愈</span>         <span class="cm"># 容器崩溃自动重启，节点故障自动迁移</span>
+<span class="kw">3. 弹性伸缩</span>     <span class="cm"># 按 CPU / 内存 / 自定义指标自动扩缩副本数</span>
+<span class="kw">4. 滚动更新</span>     <span class="cm"># 逐步替换旧版本，零停机发布与回滚</span>
+<span class="kw">5. 服务发现</span>     <span class="cm"># 通过 Service + DNS 让服务间互相找到对方</span>`,
+            label: '能力清单'
+          },
+          {
+            title: '声明式 vs 命令式',
+            code: `<span class="cm"># 命令式（Docker）：告诉系统"做什么"</span>
+<span class="cmd">docker run -d --name api -p 8080:8080 myapp: v1</span>
+<span class="cmd">docker stop api && docker rm api</span>
+<span class="cmd">docker run -d --name api -p 8080:8080 myapp:v2</span>
+
+<span class="cm"># 声明式（K8s）：描述"想要的状态"</span>
+<span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: api
+<span class="kw">spec</span>:
+  <span class="kw">replicas</span>: <span class="st">3</span>            <span class="cm"># 我要 3 个副本</span>
+  <span class="kw">template</span>:
+    <span class="kw">spec</span>:
+      <span class="kw">containers</span>:
+        - <span class="kw">name</span>: api
+          <span class="kw">image</span>: myapp:v2   <span class="cm"># 跑 v2 镜像</span>
+
+<span class="cm"># K8s 自己算出"当前 3 个 v1 → 目标 3 个 v2"，逐步替换</span>`,
+            label: '范式对比'
+          }
+        ]
+      },
+      {
+        title: '核心概念速览',
+        subs: [
+          {
+            title: '集群 / 节点 / Pod',
+            code: `<span class="kw">Cluster（集群）</span>
+  └── <span class="kw">Node（节点）</span>
+        ├── Master（控制平面）
+        │     ├── kube-apiserver     <span class="cm"># API 入口</span>
+        │     ├── etcd               <span class="cm"># 状态存储</span>
+        │     ├── kube-scheduler     <span class="cm"># 调度器</span>
+        │     └── kube-controller-manager
+        └── Worker（工作节点）
+              └── <span class="kw">Pod</span>            <span class="cm"># K8s 最小调度单位</span>
+                    └── Container(s) <span class="cm"># Pod 内容器共享网络和存储</span>
+
+<span class="cm"># 关键：K8s 不直接调度容器，而是调度 Pod</span>
+<span class="cm"># 一个 Pod 可含多个容器，共享同一个 IP 和挂载</span>`,
+            label: '架构层次'
+          },
+          {
+            title: '工作负载与网络对象',
+            code: `<span class="kw">Deployment</span>     <span class="cm"># 管理 Pod 副本，支持滚动发布（无状态）</span>
+<span class="kw">StatefulSet</span>    <span class="cm"># 有状态应用（数据库、MQ），固定 Pod 名 + 存储</span>
+<span class="kw">DaemonSet</span>      <span class="cm"># 每个节点跑一个副本（日志/监控 agent）</span>
+<span class="kw">Job / CronJob</span>  <span class="cm"># 一次性 / 定时任务</span>
+
+<span class="kw">Service</span>        <span class="cm"># 给一组 Pod 一个稳定 IP + DNS 名，负载均衡</span>
+<span class="kw">Ingress</span>        <span class="cm"># 七层路由，把 HTTP 流量按域名/路径分发到 Service</span>
+<span class="kw">ConfigMap</span>      <span class="cm"># 注入配置（非敏感）</span>
+<span class="kw">Secret</span>         <span class="cm"># 注入敏感信息（密码、证书）</span>
+<span class="kw">Volume / PVC</span>   <span class="cm"># 持久化存储声明</span>`,
+            label: '常用资源对象'
+          },
+          {
+            title: '一个最小 Deployment + Service',
+            code: `<span class="cm"># api-deploy.yaml</span>
+<span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: api
+<span class="kw">spec</span>:
+  <span class="kw">replicas</span>: <span class="st">3</span>
+  <span class="kw">selector</span>:
+    <span class="kw">matchLabels</span>: { app: api }
+  <span class="kw">template</span>:
+    <span class="kw">metadata</span>:
+      <span class="kw">labels</span>: { app: api }
+    <span class="kw">spec</span>:
+      <span class="kw">containers</span>:
+        - <span class="kw">name</span>: api
+          <span class="kw">image</span>: myapp:v1
+          <span class="kw">ports</span>: [{ containerPort: <span class="st">8080</span> }]
+          <span class="kw">resources</span>:
+            <span class="kw">requests</span>: { cpu: <span class="st">100m</span>, memory: <span class="st">128Mi</span> }
+            <span class="kw">limits</span>:   { cpu: <span class="st">500m</span>, memory: <span class="st">512Mi</span> }
+---
+<span class="kw">apiVersion</span>: v1
+<span class="kw">kind</span>: Service
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: api
+<span class="kw">spec</span>:
+  <span class="kw">type</span>: ClusterIP
+  <span class="kw">selector</span>: { app: api }   <span class="cm"># 流量转发到带 app=api 标签的 Pod</span>
+  <span class="kw">ports</span>:
+    - port: <span class="st">80</span>
+      targetPort: <span class="st">8080</span>`,
+            label: 'api-deploy.yaml'
+          }
+        ]
+      },
+      {
+        title: 'K8s vs Docker / Swarm / Nomad',
+        subs: [
+          {
+            title: '能力对比',
+            code: `<span class="kw">能力              Docker   Swarm    K8s        Nomad</span>
+调度              单机      集群     集群        集群
+自愈              ❌        ✅       ✅          ✅
+弹性伸缩          ❌        基础     强（HPA）   基础
+滚动发布          ❌        ✅       ✅          ✅
+服务发现          ❌        ✅       ✅ + DNS    ✅
+存储卷            ✅        ✅       ✅（PVC）   ✅
+生态              大        弱       极大        中
+学习曲线          低        低       高          中
+
+<span class="cm"># 结论：单机开发用 Docker；多机生产用 K8s（生态、招人都占优）</span>`,
+            label: '横向对比'
+          }
+        ]
+      },
+      {
+        title: '典型使用场景',
+        subs: [
+          {
+            title: '什么时候该上 K8s',
+            code: `<span class="kw">✅ 适合：</span>
+  <span class="st">微服务数量 > 10，且需要频繁发布</span>
+  <span class="st">需要根据流量自动扩缩容（电商大促、AI 推理）</span>
+  <span class="st">多团队共用一套基础设施，需要资源隔离与配额</span>
+  <span class="st">混合云 / 多云部署，避免被单一云商锁定</span>
+
+<span class="kw">❌ 不适合：</span>
+  <span class="st">单个 monolith + 一台服务器就够的小项目</span>
+  <span class="st">没有专职运维，学习成本收不回来</span>
+  <span class="st">强状态依赖的传统中间件（K8s 能跑但运维成本高）</span>`,
+            label: '场景判断'
+          }
+        ]
+      },
+      {
+        title: '上手路径',
+        subs: [
+          {
+            title: '从 0 到 1 的推荐顺序',
+            code: `<span class="cm"># 1. 先把 Docker 用熟：会写 Dockerfile、会用 docker compose</span>
+<span class="cmd">docker run / docker compose up</span>
+
+<span class="cm"># 2. 本地装个单机 K8s：Docker Desktop 自带 / kind / minikube</span>
+<span class="cmd">brew install minikube</span>
+<span class="cmd">minikube start</span>
+
+<span class="cm"># 3. 跑第一个 Deployment + Service</span>
+<span class="cmd">kubectl apply -f api-deploy.yaml</span>
+<span class="cmd">kubectl get pods,svc</span>
+
+<span class="cm"># 4. 学习核心命令</span>
+<span class="cmd">kubectl describe pod &lt;name&gt;</span>     <span class="cm"># 排查问题</span>
+<span class="cmd">kubectl logs -f &lt;pod&gt;</span>          <span class="cm"># 看日志</span>
+<span class="cmd">kubectl exec -it &lt;pod&gt; -- sh</span>   <span class="cm"># 进入容器</span>
+<span class="cmd">kubectl scale deploy api --replicas=5</span>
+<span class="cmd">kubectl rollout undo deploy api</span>  <span class="cm"># 回滚</span>
+
+<span class="cm"># 5. 再依次学 ConfigMap / Secret / Ingress / HPA / Helm</span>`,
+            label: '学习路径'
+          }
+        ]
+      }
+    ],
+    rules: [
+      { type: 'info', text: 'K8s 调度的最小单位是 <code>Pod</code> 而不是容器；一个 Pod 内的容器共享网络命名空间和存储卷，常用于 sidecar 模式。' },
+      { type: 'success', text: '声明式 API 是 K8s 的核心思想：你写"期望状态"（YAML），控制器持续把"实际状态"向"期望状态"收敛，无需手动操作。' },
+      { type: 'warning', text: 'K8s 学习曲线陡峭，单机小项目用 Docker Compose 即可；K8s 的运维成本只有在大规模、多服务、频繁发布时才划算。' }
+    ]
   }
 ];
 
@@ -2167,7 +2388,7 @@ vm_memory_high_watermark.relative = 0.4`,
 const sidebarNav = document.getElementById('sidebar-nav');
 const groups = [...new Set(pages.map(p => p.group))];
 
-const groupIcon = { '部署': '📦', '数据库安装': '🗄️', '中间件安装': '📨' };
+const groupIcon = { '部署': '📦', '数据库安装': '🗄️', '中间件安装': '📨', '容器编排': '☸️' };
 
 groups.forEach(group => {
   const groupEl = document.createElement('div');
