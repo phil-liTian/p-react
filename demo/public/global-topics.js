@@ -86,6 +86,7 @@ const globalTopics = [
 
   // ── Java 视角 ──
   { id: 'java-overview',                name: 'Java 概述',                     group: '概述',      icon: '☕', page: 'java' },
+  { id: 'java-basics-fundamentals',     name: 'Java 基础知识点',                group: '概述',      icon: '🎓', page: 'java' },
   { id: 'learning-map',                 name: '学习路径总览',                   group: '学习路径',  icon: '🗺️', page: 'java' },
   { id: 'spring-bean-ioc',             name: 'Spring Bean 与 IoC 容器',       group: 'Spring',   icon: '🏭', page: 'java' },
   { id: 'spring-aop',                  name: 'AOP 代理机制',                  group: 'Spring',   icon: '🔗', page: 'java' },

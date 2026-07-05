@@ -13,6 +13,22 @@ const topics = [
     ],
   },
   {
+    id: 'java-basics-fundamentals',
+    name: 'Java 基础知识点',
+    group: '☕ 概述',
+    type: 'info',
+    icon: '🎓',
+    tags: [
+      { label: '面向对象', type: 'accent' },
+      { label: '封装/继承/多态', type: 'success' },
+      { label: '重载/重写', type: 'warning' },
+      { label: 'vtable', type: 'info' },
+      { label: '内存分配', type: 'danger' },
+      { label: 'static/final', type: 'accent' },
+      { label: '枚举', type: 'info' },
+    ],
+  },
+  {
     id: 'learning-map',
     name: '学习路径总览',
     group: '🗺️ 学习路径',
