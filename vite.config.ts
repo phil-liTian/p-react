@@ -20,6 +20,7 @@ export default defineConfig({
         knowledge: resolve(__dirname, 'demo/knowledge.html'),
         'ai-coding': resolve(__dirname, 'demo/ai-coding.html'),
         python: resolve(__dirname, 'demo/python.html'),
+        'ai-app': resolve(__dirname, 'demo/ai-app.html'),
       },
     },
   },

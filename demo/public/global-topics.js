@@ -139,6 +139,11 @@ const globalTopics = [
   { id: 'python-crawler',   name: 'Python 爬虫',         group: '爬虫',     icon: '🕷️', page: 'python' },
   { id: 'rag-basics',       name: 'RAG 基础概念',         group: 'AI 应用',  icon: '🔍', page: 'python' },
 
+  // ── AI 应用开发 ──
+  { id: 'no-rag-context-stuffing',  name: '不用 RAG 全塞上下文',            group: 'RAG',      icon: '📦', page: 'ai-app' },
+  { id: 'rag-principle',            name: 'RAG 原理',                       group: 'RAG',      icon: '🔍', page: 'ai-app' },
+  { id: 'what-is-agent',            name: '什么是 Agent',                   group: 'Agent',    icon: '🤖', page: 'ai-app' },
+
   // ── 踩坑指南 ──
   { id: 'stale-closure',      name: 'useEffect 闭包陷阱',             group: 'Hooks',    icon: '🪤', page: 'pitfalls' },
   { id: 'deps-object',        name: 'deps 传引用类型',                 group: 'Hooks',    icon: '♻️', page: 'pitfalls' },
@@ -163,12 +168,12 @@ const globalTopics = [
 const _pageUrls = {
   knowledge: '/knowledge.html', tools: '/tools.html', 'ai-coding': '/ai-coding.html',
   java: '/java.html', deployment: '/deployment.html', pitfalls: '/pitfalls.html',
-  python: '/python.html',
+  python: '/python.html', 'ai-app': '/ai-app.html',
 };
 
 const _pageLabels = {
   knowledge: '知识库', tools: '工具', 'ai-coding': 'AI Coding',
-  java: 'Java', deployment: '部署', pitfalls: '踩坑', python: 'Python',
+  java: 'Java', deployment: '部署', pitfalls: '踩坑', python: 'Python', 'ai-app': 'AI 应用',
 };
 
 function initFilterModal(currentPage, localNavigate) {
@@ -203,7 +208,7 @@ function initFilterModal(currentPage, localNavigate) {
       highlighted = -1;
       return;
     }
-    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'deployment', 'pitfalls'];
+    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'python', 'ai-app', 'deployment', 'pitfalls'];
     let html = '';
     pageOrder.forEach(page => {
       const gi = matched.filter(t => t.page === page);
