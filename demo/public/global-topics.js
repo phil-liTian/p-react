@@ -58,6 +58,10 @@ const globalTopics = [
   { id: 'prod-only-bug',        name: '线上问题排查思路',                             group: '埋点监控',          icon: '🔬', page: 'knowledge' },
   { id: 'large-tree-render',    name: '大数据树形渲染不卡死',           group: '前端常见疑难问题',   icon: '🌲', page: 'knowledge' },
   { id: 'frontend-idempotency', name: '千万 QPS 下前端幂等性方案',      group: '前端常见疑难问题',   icon: '🔐', page: 'knowledge' },
+  { id: 'frontend-architecture', name: '前端架构设计（六大模块）',       group: '前端架构',         icon: '🏛️', page: 'knowledge' },
+  { id: 'frontend-cicd',         name: '前端 CI/CD 落地',                group: '前端架构',         icon: '🚀', page: 'knowledge' },
+  { id: 'frontend-devops',       name: '从前端角度理解 DevOps',          group: '前端架构',         icon: '🔧', page: 'knowledge' },
+  { id: 'frontend-testing',      name: '前端测试体系（七层金字塔）',      group: '前端架构',         icon: '🧪', page: 'knowledge' },
 
   // ── 开发工具 ──
   { id: 'resize-image',  name: '在线改变图片尺寸',        group: '工具箱',   icon: '🖼️', page: 'tools' },
@@ -143,6 +147,7 @@ const globalTopics = [
   { id: 'no-rag-context-stuffing',  name: '不用 RAG 全塞上下文',            group: 'RAG',      icon: '📦', page: 'ai-app' },
   { id: 'rag-principle',            name: 'RAG 原理',                       group: 'RAG',      icon: '🔍', page: 'ai-app' },
   { id: 'what-is-agent',            name: '什么是 Agent',                   group: 'Agent',    icon: '🤖', page: 'ai-app' },
+  { id: 'agent-work-principle',     name: 'Agent 工作原理（LangChain）',    group: 'Agent',    icon: '⚙️', page: 'ai-app' },
 
   // ── 踩坑指南 ──
   { id: 'stale-closure',      name: 'useEffect 闭包陷阱',             group: 'Hooks',    icon: '🪤', page: 'pitfalls' },

@@ -38,6 +38,19 @@ const topics = [
       { label: 'ReAct', type: 'warning' },
     ],
   },
+  {
+    id: 'agent-work-principle',
+    name: 'Agent 工作原理（LangChain）',
+    group: '🤖 Agent',
+    type: 'accent',
+    icon: '⚙️',
+    tags: [
+      { label: 'LangChain', type: 'accent' },
+      { label: 'Tools 调用', type: 'info' },
+      { label: 'AgentExecutor', type: 'success' },
+      { label: 'LangGraph', type: 'warning' },
+    ],
+  },
 ];
 
 // ── Shared helpers ────────────────────────────────────────────────────────────

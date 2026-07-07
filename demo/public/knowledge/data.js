@@ -709,6 +709,68 @@ const topics = [
     ],
   },
 
+  {
+    id: 'frontend-architecture',
+    name: '前端架构设计（六大模块）',
+    group: '前端架构',
+    type: 'accent',
+    icon: '🏛️',
+    tags: [
+      { label: '底层基建', type: 'info' },
+      { label: '工程化', type: 'accent' },
+      { label: '代码分层', type: 'success' },
+      { label: '业务治理', type: 'warning' },
+      { label: '性能稳定性', type: 'danger' },
+      { label: '运维监控', type: 'info' },
+    ],
+  },
+
+  {
+    id: 'frontend-cicd',
+    name: '前端 CI/CD 落地',
+    group: '前端架构',
+    type: 'success',
+    icon: '🚀',
+    tags: [
+      { label: 'husky', type: 'info' },
+      { label: 'GitHub Actions', type: 'accent' },
+      { label: '灰度发布', type: 'warning' },
+      { label: '回滚', type: 'danger' },
+    ],
+  },
+
+  {
+    id: 'frontend-devops',
+    name: '从前端角度理解 DevOps',
+    group: '前端架构',
+    type: 'warning',
+    icon: '🔧',
+    tags: [
+      { label: 'CALMS', type: 'info' },
+      { label: 'IaC', type: 'accent' },
+      { label: 'RUM', type: 'success' },
+      { label: '可观测性', type: 'warning' },
+      { label: '自动恢复', type: 'danger' },
+    ],
+  },
+
+  {
+    id: 'frontend-testing',
+    name: '前端测试体系（七层金字塔）',
+    group: '前端架构',
+    type: 'success',
+    icon: '🧪',
+    tags: [
+      { label: '静态检查', type: 'info' },
+      { label: '单元测试', type: 'success' },
+      { label: '组件测试', type: 'accent' },
+      { label: '集成测试', type: 'warning' },
+      { label: 'E2E', type: 'danger' },
+      { label: '视觉回归', type: 'info' },
+      { label: '性能 / a11y', type: 'warning' },
+    ],
+  },
+
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
