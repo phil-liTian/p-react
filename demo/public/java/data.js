@@ -119,6 +119,19 @@ const topics = [
     ],
   },
   {
+    id: 'jar-vs-npm',
+    name: 'jar 包 vs npm 包',
+    group: '📦 工具链',
+    type: 'info',
+    icon: '📦',
+    tags: [
+      { label: 'jar', type: 'warning' },
+      { label: 'npm 包', type: 'info' },
+      { label: 'Fat jar', type: 'accent' },
+      { label: 'bundle', type: 'success' },
+    ],
+  },
+  {
     id: 'spring-boot-vs-vite',
     name: 'Spring Boot vs Vite 项目结构',
     group: '🏗️ 项目结构',
@@ -301,6 +314,20 @@ const topics = [
     ],
   },
   {
+    id: 'spring-annotations',
+    name: 'Spring 注解全览',
+    group: '🌱 Spring 通识',
+    type: 'accent',
+    icon: '🏷️',
+    tags: [
+      { label: '@Component', type: 'success' },
+      { label: '@Autowired', type: 'info' },
+      { label: '@Transactional', type: 'warning' },
+      { label: '@Conditional', type: 'accent' },
+      { label: '注解大全', type: 'danger' },
+    ],
+  },
+  {
     id: 'java-utils',
     name: '通用工具类',
     group: '☕ Java 基础',
@@ -337,6 +364,19 @@ const topics = [
       { label: 'groupingBy', type: 'accent' },
       { label: '统计', type: 'info' },
       { label: 'filter', type: 'warning' },
+    ],
+  },
+  {
+    id: 'lombok',
+    name: 'Lombok 用法详解',
+    group: '☕ Java 基础',
+    type: 'accent',
+    icon: '🪄',
+    tags: [
+      { label: 'Lombok', type: 'accent' },
+      { label: '@Data', type: 'success' },
+      { label: '@Builder', type: 'warning' },
+      { label: '注解处理', type: 'info' },
     ],
   },
   {
@@ -441,6 +481,19 @@ const topics = [
       { label: 'Kafka', type: 'accent' },
       { label: '选型对比', type: 'info' },
       { label: '消息队列', type: 'success' },
+    ],
+  },
+  {
+    id: 'elasticsearch',
+    name: 'Elasticsearch 全文检索',
+    group: '🧩 中间件',
+    type: 'accent',
+    icon: '🔍',
+    tags: [
+      { label: 'Elasticsearch', type: 'accent' },
+      { label: '倒排索引', type: 'warning' },
+      { label: '全文搜索', type: 'success' },
+      { label: 'ELK', type: 'info' },
     ],
   },
   {

@@ -21,6 +21,7 @@ export default defineConfig({
         'ai-coding': resolve(__dirname, 'demo/ai-coding.html'),
         python: resolve(__dirname, 'demo/python.html'),
         'ai-app': resolve(__dirname, 'demo/ai-app.html'),
+        'react-principle': resolve(__dirname, 'demo/react-principle.html'),
       },
     },
   },

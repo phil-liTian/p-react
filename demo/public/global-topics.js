@@ -58,6 +58,7 @@ const globalTopics = [
   { id: 'prod-only-bug',        name: '线上问题排查思路',                             group: '埋点监控',          icon: '🔬', page: 'knowledge' },
   { id: 'large-tree-render',    name: '大数据树形渲染不卡死',           group: '前端常见疑难问题',   icon: '🌲', page: 'knowledge' },
   { id: 'frontend-idempotency', name: '千万 QPS 下前端幂等性方案',      group: '前端常见疑难问题',   icon: '🔐', page: 'knowledge' },
+  { id: 'concurrent-request-pool', name: '前端并发请求池',              group: '前端常见疑难问题',   icon: '🌊', page: 'knowledge' },
   { id: 'frontend-architecture', name: '前端架构设计（六大模块）',       group: '前端架构',         icon: '🏛️', page: 'knowledge' },
   { id: 'frontend-cicd',         name: '前端 CI/CD 落地',                group: '前端架构',         icon: '🚀', page: 'knowledge' },
   { id: 'frontend-devops',       name: '从前端角度理解 DevOps',          group: '前端架构',         icon: '🔧', page: 'knowledge' },
@@ -98,7 +99,9 @@ const globalTopics = [
   { id: 'knife4j-dto-vo',              name: 'Knife4j 与 DTO/VO 分层',        group: 'Spring',   icon: '📋', page: 'java' },
   { id: 'spring-boot-autoconfig',      name: 'Spring Boot 自动配置原理',      group: 'Spring',   icon: '⚡', page: 'java' },
   { id: 'global-log-interceptor',      name: '全局日志拦截',                  group: 'Spring',   icon: '📋', page: 'java' },
+  { id: 'spring-annotations',          name: 'Spring 注解全览',                group: 'Spring',   icon: '🏷️', page: 'java' },
   { id: 'maven-vs-npm',                name: 'Maven vs npm',                  group: '工具链',   icon: '📦', page: 'java' },
+  { id: 'jar-vs-npm',                  name: 'jar 包 vs npm 包',              group: '工具链',   icon: '📦', page: 'java' },
   { id: 'spring-boot-vs-vite',         name: 'Spring Boot vs Vite 项目结构', group: '项目结构',  icon: '🏗️', page: 'java' },
   { id: 'spring-transaction-intro',    name: 'Spring Boot 单表事务',          group: '数据库',   icon: '🔒', page: 'java' },
   { id: 'spring-transaction-isolation', name: '事务隔离级别',                 group: '数据库',   icon: '🔬', page: 'java' },
@@ -115,6 +118,7 @@ const globalTopics = [
   { id: 'java-utils',                  name: '通用工具类',                    group: 'Java 基础', icon: '🧰', page: 'java' },
   { id: 'java-lambda',                 name: 'Lambda 与函数式接口',           group: 'Java 基础', icon: '🔧', page: 'java' },
   { id: 'java-stream',                 name: 'Stream 分组、统计、过滤',       group: 'Java 基础', icon: '🌊', page: 'java' },
+  { id: 'lombok',                      name: 'Lombok 用法详解',              group: 'Java 基础', icon: '🪄', page: 'java' },
   { id: 'distributed-system-overview', name: '分布式系统基础',                group: '分布式',   icon: '🌐', page: 'java' },
   { id: 'cluster-vs-distributed',      name: '集群 vs 分布式',                group: '分布式',   icon: '🏗️', page: 'java' },
   { id: 'cap-base-theorem',            name: 'CAP 与 BASE 理论',             group: '分布式',   icon: '⚖️', page: 'java' },
@@ -123,6 +127,7 @@ const globalTopics = [
   { id: 'middleware-overview',         name: '什么是中间件',                  group: '中间件',   icon: '🧩', page: 'java' },
   { id: 'nacos',                       name: 'Nacos 服务发现与配置中心',      group: '中间件',   icon: '🗂️', page: 'java' },
   { id: 'rabbitmq-vs-kafka',           name: 'RabbitMQ vs Kafka',             group: '中间件',   icon: '🐇', page: 'java' },
+  { id: 'elasticsearch',               name: 'Elasticsearch 全文检索',        group: '中间件',   icon: '🔍', page: 'java' },
   { id: 'idempotency',                 name: '幂等性处理机制',                group: '分布式',   icon: '🔁', page: 'java' },
 
   // ── 部署指南 ──
@@ -166,6 +171,17 @@ const globalTopics = [
   { id: 'layout-effect-sync', name: 'useLayoutEffect 阻塞渲染',        group: '生命周期', icon: '⏱️', page: 'pitfalls' },
   { id: 'form-action-state',  name: 'useActionState 返回值混淆',       group: 'React 19', icon: '📝', page: 'pitfalls' },
   { id: 'optimistic-ui',      name: 'useOptimistic 与真实状态同步',    group: 'React 19', icon: '✨', page: 'pitfalls' },
+
+  // ── React 原理 ──
+  { id: 'jsx-createelement-reactelement', name: 'JSX 本质、createElement、ReactElement 结构', group: 'React 原理', icon: '🧬', page: 'react-principle' },
+  { id: 'basic-hooks-rules', name: '基础 Hooks 执行规则', group: 'React 原理', icon: '🪝', page: 'react-principle' },
+  { id: 'fiber-architecture-what-is-it', name: '什么是 Fiber 架构', group: 'React 原理', icon: '🌳', page: 'react-principle' },
+  { id: 'double-buffering-mechanism', name: '什么是双缓存机制（Double Buffering）', group: 'React 原理', icon: '🪞', page: 'react-principle' },
+  { id: 'diff-algorithm', name: 'React Diff 算法（对比 Vue）', group: 'React 原理', icon: '🔀', page: 'react-principle' },
+  { id: 'scheduler-principle', name: 'Scheduler 调度器：时间切片与优先级队列', group: 'React 原理', icon: '⏱️', page: 'react-principle' },
+  { id: 'lane-priority-model', name: 'Lane 优先级模型：位掩码与批处理', group: 'React 原理', icon: '🚦', page: 'react-principle' },
+  { id: 'concurrent-mode', name: '并发模式：useTransition / Suspense / 中断恢复', group: 'React 原理', icon: '⚡', page: 'react-principle' },
+  { id: 'react19-event-system', name: 'React 19 事件系统：合成事件、委托、优先级绑定', group: 'React 原理', icon: '🎯', page: 'react-principle' },
 ];
 
 // ── 全局筛选弹框 ──────────────────────────────────────────────────────────────
@@ -173,12 +189,13 @@ const globalTopics = [
 const _pageUrls = {
   knowledge: '/knowledge.html', tools: '/tools.html', 'ai-coding': '/ai-coding.html',
   java: '/java.html', deployment: '/deployment.html', pitfalls: '/pitfalls.html',
-  python: '/python.html', 'ai-app': '/ai-app.html',
+  python: '/python.html', 'ai-app': '/ai-app.html', 'react-principle': '/react-principle.html',
 };
 
 const _pageLabels = {
   knowledge: '知识库', tools: '工具', 'ai-coding': 'AI Coding',
   java: 'Java', deployment: '部署', pitfalls: '踩坑', python: 'Python', 'ai-app': 'AI 应用',
+  'react-principle': 'React 原理',
 };
 
 function initFilterModal(currentPage, localNavigate) {
@@ -213,7 +230,7 @@ function initFilterModal(currentPage, localNavigate) {
       highlighted = -1;
       return;
     }
-    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'python', 'ai-app', 'deployment', 'pitfalls'];
+    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'python', 'ai-app', 'deployment', 'pitfalls', 'react-principle'];
     let html = '';
     pageOrder.forEach(page => {
       const gi = matched.filter(t => t.page === page);

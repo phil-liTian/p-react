@@ -710,6 +710,20 @@ const topics = [
   },
 
   {
+    id: 'concurrent-request-pool',
+    name: '前端并发请求池',
+    group: '前端常见疑难问题',
+    type: 'danger',
+    icon: '🌊',
+    tags: [
+      { label: '请求池', type: 'danger' },
+      { label: '并发控制', type: 'warning' },
+      { label: '批量上传', type: 'info' },
+      { label: 'p-limit', type: 'success' },
+    ],
+  },
+
+  {
     id: 'frontend-architecture',
     name: '前端架构设计（六大模块）',
     group: '前端架构',

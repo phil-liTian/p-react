@@ -316,7 +316,6 @@ function mountState<State>(
     lastRenderedState: memoizedState,
   };
   hook.queue = queue;
-
   const dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber!,
