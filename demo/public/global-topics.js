@@ -115,10 +115,12 @@ const globalTopics = [
   { id: 'mybatis-dynamic-sql',         name: 'MyBatis 动态 SQL',              group: '数据库',   icon: '🧩', page: 'java' },
   { id: 'mybatis-plus',                name: 'MyBatis-Plus 分页与逻辑删除',   group: '数据库',   icon: '🚀', page: 'java' },
   { id: 'java-locks',                  name: 'Java 锁机制速查',               group: 'Java 基础', icon: '🔐', page: 'java' },
+  { id: 'java-thread-pool',            name: 'Java 线程与线程池',             group: '并发',      icon: '🧵', page: 'java' },
   { id: 'java-utils',                  name: '通用工具类',                    group: 'Java 基础', icon: '🧰', page: 'java' },
   { id: 'java-lambda',                 name: 'Lambda 与函数式接口',           group: 'Java 基础', icon: '🔧', page: 'java' },
   { id: 'java-stream',                 name: 'Stream 分组、统计、过滤',       group: 'Java 基础', icon: '🌊', page: 'java' },
   { id: 'lombok',                      name: 'Lombok 用法详解',              group: 'Java 基础', icon: '🪄', page: 'java' },
+  { id: 'jackson',                     name: 'Jackson 序列化与反序列化',     group: 'Java 基础', icon: '📦', page: 'java' },
   { id: 'distributed-system-overview', name: '分布式系统基础',                group: '分布式',   icon: '🌐', page: 'java' },
   { id: 'cluster-vs-distributed',      name: '集群 vs 分布式',                group: '分布式',   icon: '🏗️', page: 'java' },
   { id: 'cap-base-theorem',            name: 'CAP 与 BASE 理论',             group: '分布式',   icon: '⚖️', page: 'java' },
@@ -128,6 +130,7 @@ const globalTopics = [
   { id: 'nacos',                       name: 'Nacos 服务发现与配置中心',      group: '中间件',   icon: '🗂️', page: 'java' },
   { id: 'rabbitmq-vs-kafka',           name: 'RabbitMQ vs Kafka',             group: '中间件',   icon: '🐇', page: 'java' },
   { id: 'elasticsearch',               name: 'Elasticsearch 全文检索',        group: '中间件',   icon: '🔍', page: 'java' },
+  { id: 'doris',                       name: 'Doris 实时分析数据库',          group: '中间件',   icon: '📊', page: 'java' },
   { id: 'idempotency',                 name: '幂等性处理机制',                group: '分布式',   icon: '🔁', page: 'java' },
 
   // ── 部署指南 ──
@@ -182,6 +185,16 @@ const globalTopics = [
   { id: 'lane-priority-model', name: 'Lane 优先级模型：位掩码与批处理', group: 'React 原理', icon: '🚦', page: 'react-principle' },
   { id: 'concurrent-mode', name: '并发模式：useTransition / Suspense / 中断恢复', group: 'React 原理', icon: '⚡', page: 'react-principle' },
   { id: 'react19-event-system', name: 'React 19 事件系统：合成事件、委托、优先级绑定', group: 'React 原理', icon: '🎯', page: 'react-principle' },
+
+  // ── 数据库 ──
+  { id: 'mysql-overview',     name: 'MySQL 概述',   group: 'MySQL',   icon: '🐬', page: 'database' },
+  { id: 'mysql-index',        name: 'MySQL 索引原理与调优', group: 'MySQL', icon: '🌳', page: 'database' },
+  { id: 'mysql-transaction',  name: 'MySQL 事务与锁',        group: 'MySQL', icon: '🔒', page: 'database' },
+  { id: 'mysql-tuning',       name: 'MySQL SQL 调优',         group: 'MySQL', icon: '⚡', page: 'database' },
+  { id: 'mysql-replication',  name: 'MySQL 主从复制与高可用', group: 'MySQL', icon: '🔄', page: 'database' },
+  { id: 'redis-overview',     name: 'Redis 概述',   group: 'Redis',   icon: '🔴', page: 'database' },
+  { id: 'mongodb-overview',   name: 'MongoDB 概述', group: 'MongoDB', icon: '🍃', page: 'database' },
+  { id: 'postgresql-overview', name: 'PostgreSQL 概述', group: 'PostgreSQL', icon: '🐘', page: 'database' },
 ];
 
 // ── 全局筛选弹框 ──────────────────────────────────────────────────────────────
@@ -190,12 +203,13 @@ const _pageUrls = {
   knowledge: '/knowledge.html', tools: '/tools.html', 'ai-coding': '/ai-coding.html',
   java: '/java.html', deployment: '/deployment.html', pitfalls: '/pitfalls.html',
   python: '/python.html', 'ai-app': '/ai-app.html', 'react-principle': '/react-principle.html',
+  database: '/database.html',
 };
 
 const _pageLabels = {
   knowledge: '知识库', tools: '工具', 'ai-coding': 'AI Coding',
   java: 'Java', deployment: '部署', pitfalls: '踩坑', python: 'Python', 'ai-app': 'AI 应用',
-  'react-principle': 'React 原理',
+  'react-principle': 'React 原理', database: '数据库',
 };
 
 function initFilterModal(currentPage, localNavigate) {
@@ -230,7 +244,7 @@ function initFilterModal(currentPage, localNavigate) {
       highlighted = -1;
       return;
     }
-    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'python', 'ai-app', 'deployment', 'pitfalls', 'react-principle'];
+    const pageOrder = ['knowledge', 'tools', 'ai-coding', 'java', 'python', 'ai-app', 'database', 'deployment', 'pitfalls', 'react-principle'];
     let html = '';
     pageOrder.forEach(page => {
       const gi = matched.filter(t => t.page === page);

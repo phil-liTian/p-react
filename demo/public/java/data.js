@@ -171,6 +171,19 @@ const topics = [
     ],
   },
   {
+    id: 'java-thread-pool',
+    name: 'Java 线程与线程池',
+    group: '🧵 并发',
+    type: 'accent',
+    icon: '🧵',
+    tags: [
+      { label: 'Thread', type: 'accent' },
+      { label: 'ThreadPoolExecutor', type: 'success' },
+      { label: '拒绝策略', type: 'warning' },
+      { label: '并发', type: 'danger' },
+    ],
+  },
+  {
     id: 'spring-transaction-isolation',
     name: '事务隔离级别',
     group: '🗄️ 数据库',
@@ -380,6 +393,19 @@ const topics = [
     ],
   },
   {
+    id: 'jackson',
+    name: 'Jackson 序列化与反序列化',
+    group: '☕ Java 基础',
+    type: 'info',
+    icon: '📦',
+    tags: [
+      { label: 'Jackson', type: 'info' },
+      { label: 'ObjectMapper', type: 'accent' },
+      { label: '@JsonProperty', type: 'success' },
+      { label: 'JSON', type: 'warning' },
+    ],
+  },
+  {
     id: 'distributed-system-overview',
     name: '分布式系统基础',
     group: '🌐 分布式',
@@ -494,6 +520,19 @@ const topics = [
       { label: '倒排索引', type: 'warning' },
       { label: '全文搜索', type: 'success' },
       { label: 'ELK', type: 'info' },
+    ],
+  },
+  {
+    id: 'doris',
+    name: 'Doris 实时分析数据库',
+    group: '🧩 中间件',
+    type: 'success',
+    icon: '📊',
+    tags: [
+      { label: 'Doris', type: 'success' },
+      { label: 'OLAP', type: 'accent' },
+      { label: 'MPP', type: 'warning' },
+      { label: '实时数仓', type: 'info' },
     ],
   },
   {

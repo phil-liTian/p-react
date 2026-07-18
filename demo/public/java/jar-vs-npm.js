@@ -89,6 +89,3 @@ pnpm build
     ${section('元信息清单对比', codePair)}
     ${section('打包 & 运行流程对比', codePairCmd)}`);
 }
-
-
-https://mem-mp.shenyejituan.com/a/passport/LoginOut?callbackUrl=https://iam.shenyejituan.com:6443/idp/profile/OAUTH2/Redirect/GLO?redirectToLogin=true&redirctToUrl=https://mem-mp.shenyejituan.com/a/pmsn/account/info&entityId=khxtpt

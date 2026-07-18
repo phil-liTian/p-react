@@ -22,6 +22,7 @@ export default defineConfig({
         python: resolve(__dirname, 'demo/python.html'),
         'ai-app': resolve(__dirname, 'demo/ai-app.html'),
         'react-principle': resolve(__dirname, 'demo/react-principle.html'),
+        database: resolve(__dirname, 'demo/database.html'),
       },
     },
   },
