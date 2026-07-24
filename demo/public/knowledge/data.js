@@ -785,6 +785,21 @@ const topics = [
     ],
   },
 
+  {
+    id: 'mf-submodule',
+    name: '微前端方案：MF + subModule',
+    group: '前端架构',
+    type: 'accent',
+    icon: '🧩',
+    tags: [
+      { label: 'Module Federation', type: 'accent' },
+      { label: 'subModule', type: 'info' },
+      { label: '远程模块', type: 'success' },
+      { label: '共享源码', type: 'warning' },
+      { label: '多团队协作', type: 'danger' },
+    ],
+  },
+
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

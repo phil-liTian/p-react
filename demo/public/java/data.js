@@ -13,6 +13,19 @@ const topics = [
     ],
   },
   {
+    id: 'fullstack-path',
+    name: '前端转全栈路线',
+    group: '☕ 概述',
+    type: 'success',
+    icon: '🛣️',
+    tags: [
+      { label: '全栈', type: 'success' },
+      { label: '需求分析', type: 'accent' },
+      { label: '六层方法', type: 'info' },
+      { label: '心态转变', type: 'warning' },
+    ],
+  },
+  {
     id: 'java-basics-fundamentals',
     name: 'Java 基础知识点',
     group: '☕ 概述',
@@ -546,6 +559,19 @@ const topics = [
       { label: '防重', type: 'warning' },
       { label: '唯一索引', type: 'success' },
       { label: 'Token', type: 'info' },
+    ],
+  },
+  {
+    id: 'rpc',
+    name: 'RPC 调用流程',
+    group: '🌐 分布式',
+    type: 'accent',
+    icon: '📞',
+    tags: [
+      { label: 'RPC', type: 'accent' },
+      { label: 'Dubbo', type: 'success' },
+      { label: 'gRPC', type: 'info' },
+      { label: 'Stub', type: 'warning' },
     ],
   },
 ];

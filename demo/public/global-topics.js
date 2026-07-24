@@ -63,6 +63,7 @@ const globalTopics = [
   { id: 'frontend-cicd',         name: '前端 CI/CD 落地',                group: '前端架构',         icon: '🚀', page: 'knowledge' },
   { id: 'frontend-devops',       name: '从前端角度理解 DevOps',          group: '前端架构',         icon: '🔧', page: 'knowledge' },
   { id: 'frontend-testing',      name: '前端测试体系（七层金字塔）',      group: '前端架构',         icon: '🧪', page: 'knowledge' },
+  { id: 'mf-submodule',          name: '微前端方案：MF + subModule',      group: '前端架构',         icon: '🧩', page: 'knowledge' },
 
   // ── 开发工具 ──
   { id: 'resize-image',  name: '在线改变图片尺寸',        group: '工具箱',   icon: '🖼️', page: 'tools' },
@@ -91,6 +92,7 @@ const globalTopics = [
 
   // ── Java 视角 ──
   { id: 'java-overview',                name: 'Java 概述',                     group: '概述',      icon: '☕', page: 'java' },
+  { id: 'fullstack-path',               name: '前端转全栈路线',                group: '概述',      icon: '🛣️', page: 'java' },
   { id: 'java-basics-fundamentals',     name: 'Java 基础知识点',                group: '概述',      icon: '🎓', page: 'java' },
   { id: 'learning-map',                 name: '学习路径总览',                   group: '学习路径',  icon: '🗺️', page: 'java' },
   { id: 'spring-bean-ioc',             name: 'Spring Bean 与 IoC 容器',       group: 'Spring',   icon: '🏭', page: 'java' },
@@ -132,6 +134,7 @@ const globalTopics = [
   { id: 'elasticsearch',               name: 'Elasticsearch 全文检索',        group: '中间件',   icon: '🔍', page: 'java' },
   { id: 'doris',                       name: 'Doris 实时分析数据库',          group: '中间件',   icon: '📊', page: 'java' },
   { id: 'idempotency',                 name: '幂等性处理机制',                group: '分布式',   icon: '🔁', page: 'java' },
+  { id: 'rpc',                         name: 'RPC 调用流程',                  group: '分布式',   icon: '📞', page: 'java' },
 
   // ── 部署指南 ──
   { id: 'node-pm2',        name: 'Node.js + PM2',    group: '部署',    icon: '🚀', page: 'deployment' },
@@ -188,13 +191,26 @@ const globalTopics = [
 
   // ── 数据库 ──
   { id: 'mysql-overview',     name: 'MySQL 概述',   group: 'MySQL',   icon: '🐬', page: 'database' },
+  { id: 'mysql-ddl',          name: '什么是 DDL',   group: 'MySQL',   icon: '📐', page: 'database' },
   { id: 'mysql-index',        name: 'MySQL 索引原理与调优', group: 'MySQL', icon: '🌳', page: 'database' },
   { id: 'mysql-transaction',  name: 'MySQL 事务与锁',        group: 'MySQL', icon: '🔒', page: 'database' },
   { id: 'mysql-tuning',       name: 'MySQL SQL 调优',         group: 'MySQL', icon: '⚡', page: 'database' },
   { id: 'mysql-replication',  name: 'MySQL 主从复制与高可用', group: 'MySQL', icon: '🔄', page: 'database' },
   { id: 'redis-overview',     name: 'Redis 概述',   group: 'Redis',   icon: '🔴', page: 'database' },
+  { id: 'redis-concepts',     name: 'Redis 核心概念深入',           group: 'Redis', icon: '🧠', page: 'database' },
+  { id: 'redis-pitfalls',     name: 'Redis 生产高频问题与解决方案', group: 'Redis', icon: '⚠️', page: 'database' },
+  { id: 'redis-tuning',       name: 'Redis 性能调优与运维',         group: 'Redis', icon: '⚡', page: 'database' },
+  { id: 'redis-cluster',      name: 'Redis 高可用与集群方案',       group: 'Redis', icon: '🌐', page: 'database' },
   { id: 'mongodb-overview',   name: 'MongoDB 概述', group: 'MongoDB', icon: '🍃', page: 'database' },
+  { id: 'mongodb-modeling',     name: 'MongoDB 核心概念与建模',   group: 'MongoDB', icon: '🧱', page: 'database' },
+  { id: 'mongodb-aggregation',  name: 'MongoDB 聚合与索引调优',   group: 'MongoDB', icon: '🔧', page: 'database' },
+  { id: 'mongodb-cluster',      name: 'MongoDB 高可用与分片集群', group: 'MongoDB', icon: '🌐', page: 'database' },
+  { id: 'mongodb-ops',          name: 'MongoDB 生产高频问题与运维', group: 'MongoDB', icon: '🛠️', page: 'database' },
   { id: 'postgresql-overview', name: 'PostgreSQL 概述', group: 'PostgreSQL', icon: '🐘', page: 'database' },
+  { id: 'pg-concepts',          name: 'PostgreSQL 核心概念与数据类型', group: 'PostgreSQL', icon: '🧠', page: 'database' },
+  { id: 'pg-tuning',            name: 'PostgreSQL 索引与查询调优',   group: 'PostgreSQL', icon: '🔧', page: 'database' },
+  { id: 'pg-replication',       name: 'PostgreSQL 高可用与复制',     group: 'PostgreSQL', icon: '🔄', page: 'database' },
+  { id: 'pg-extensions',        name: 'PostgreSQL 扩展生态与运维',   group: 'PostgreSQL', icon: '🧩', page: 'database' },
 ];
 
 // ── 全局筛选弹框 ──────────────────────────────────────────────────────────────
