@@ -69,11 +69,14 @@ const globalTopics = [
   { id: 'resize-image',  name: '在线改变图片尺寸',        group: '工具箱',   icon: '🖼️', page: 'tools' },
   { id: 'whistle',       name: 'whistle 抓包',            group: '日常工具', icon: '🔍', page: 'tools' },
   { id: 'switch-hosts',  name: 'SwitchHosts',             group: '日常工具', icon: '🌐', page: 'tools' },
+  { id: 'cookie-sync',   name: 'Cookie Sync Assistant',   group: '日常工具', icon: '🍪', page: 'tools' },
   { id: 'jetbrains-toolbox', name: 'JetBrains Toolbox',  group: '日常工具', icon: '🧰', page: 'tools' },
   { id: 'rtk',           name: 'RTK (Rust Token Killer)', group: 'AI 工具', icon: '🟣', page: 'tools' },
   { id: 'cc-switch',     name: 'cc-switch',             group: 'AI 工具',  icon: '🟣', page: 'tools' },
   { id: 'superpowers',   name: 'Superpowers',           group: 'AI 工具',  icon: '🟣', page: 'tools' },
   { id: 'web-access',    name: 'web-access',      group: 'AI 工具',  icon: '🌐', page: 'tools' },
+  { id: 'cc-gui',        name: 'CC GUI',          group: 'AI 工具',  icon: '🖥️', page: 'tools' },
+  { id: 'teamstudio',    name: 'TeamStudio',      group: 'AI 工具',  icon: '📚', page: 'tools' },
 
   // ── AI Coding ──
   { id: 'my-view',              name: '我对 AI Coding 的理解',   group: '认知篇', icon: '💡', page: 'ai-coding' },
@@ -159,6 +162,13 @@ const globalTopics = [
   { id: 'rag-principle',            name: 'RAG 原理',                       group: 'RAG',      icon: '🔍', page: 'ai-app' },
   { id: 'what-is-agent',            name: '什么是 Agent',                   group: 'Agent',    icon: '🤖', page: 'ai-app' },
   { id: 'agent-work-principle',     name: 'Agent 工作原理（LangChain）',    group: 'Agent',    icon: '⚙️', page: 'ai-app' },
+  { id: 'react-vs-cot',              name: 'ReAct 完整链路 vs CoT',          group: 'Agent',    icon: '🔁', page: 'ai-app' },
+  { id: 'intent-recognition',        name: '意图识别',                       group: 'Agent',    icon: '🎯', page: 'ai-app' },
+  { id: 'route-plan',               name: '路由规划（Plan-and-Execute）',   group: 'Agent',    icon: '🗺️', page: 'ai-app' },
+  { id: 'hitl',                     name: 'HITL（人机协同）',               group: 'Agent',    icon: '🤝', page: 'ai-app' },
+  { id: 'mcp',                      name: 'MCP 协议详解',                  group: 'Agent',    icon: '🔌', page: 'ai-app' },
+  { id: 'mcp-architecture',          name: 'MCP 架构设计（跨 Agent 共享）',  group: 'Agent',    icon: '🏗️', page: 'ai-app' },
+  { id: 'query-rewriting',           name: '查询改写',                       group: 'RAG',      icon: '🔄', page: 'ai-app' },
 
   // ── 踩坑指南 ──
   { id: 'stale-closure',      name: 'useEffect 闭包陷阱',             group: 'Hooks',    icon: '🪤', page: 'pitfalls' },

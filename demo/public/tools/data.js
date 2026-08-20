@@ -44,6 +44,21 @@ const tools = [
   },
 
   {
+    id: 'cookie-sync',
+    name: 'Cookie Sync Assistant',
+    group: '日常工具',
+    type: 'info',
+    icon: '🍪',
+    tags: [
+      { label: 'Cookie 同步', type: 'info' },
+      { label: '本地开发', type: 'warning' },
+      { label: 'Chrome 扩展', type: 'success' },
+    ],
+    summary: 'Cookie Sync Assistant 是 Chrome 扩展，自动把生产环境的 Cookie 同步到 localhost / 127.0.0.1，让本地开发服务器直接复用线上登录会话，免去手动从 DevTools 复制 Cookie 的繁琐流程。应用商店：https://chromewebstore.google.com/detail/cookie-sync-assistant/agpegklbpdijjppfejcbiklfihbjkcbp',
+    url: 'https://chromewebstore.google.com/detail/cookie-sync-assistant/agpegklbpdijjppfejcbiklfihbjkcbp',
+  },
+
+  {
     id: 'jetbrains-toolbox',
     name: 'JetBrains Toolbox',
     group: '日常工具',
@@ -109,6 +124,34 @@ const tools = [
       { label: 'Anchor Browser', type: 'warning' },
     ],
     summary: 'web-access 是 Claude Code 的联网操作 skill，所有搜索、网页抓取、登录后操作、动态渲染页面（小红书、微博等）均通过此 skill 处理，底层自动选择 WebFetch 或 Anchor Browser MCP。',
+  },
+  {
+    id: 'cc-gui',
+    name: 'CC GUI',
+    group: 'AI 工具',
+    type: 'accent',
+    icon: '🖥️',
+    tags: [
+      { label: 'JetBrains 插件', type: 'accent' },
+      { label: 'Claude Code', type: 'accent' },
+      { label: 'Codex', type: 'warning' },
+    ],
+    summary: 'CC GUI（原名 Claude Code GUI）是开源的 JetBrains 插件，为 Claude Code 和 OpenAI Codex 提供 GUI 界面，在 IDEA 内直接使用 AI 编程辅助，支持 @file 引用、图片输入、Agent、MCP、Diff 对比与会话管理。项目地址：https://github.com/zhukunpenglinyutong/jetbrains-cc-gui',
+    url: 'https://github.com/zhukunpenglinyutong/desktop-cc-gui/releases',
+  },
+  {
+    id: 'teamstudio',
+    name: 'TeamStudio',
+    group: 'AI 工具',
+    type: 'accent',
+    icon: '📚',
+    tags: [
+      { label: '上下文管理', type: 'accent' },
+      { label: 'CLI 注入', type: 'info' },
+      { label: 'AGENTS.md', type: 'success' },
+      { label: '团队协同', type: 'warning' },
+    ],
+    summary: 'TeamStudio 管理公司的 AI 上下文（规范、文档、技能等），通过 CLI 注入到本地 Coding Agent（Claude Code / Cursor 等）。维护者把内容按目录约定放进 Git，平台注册为"包"后项目里勾选；开发者装一次客户端，启动助手时自动同步，AGENTS.md 始终注入、技能按需触发、文档按需阅读、资源搜索拉取。',
   },
 ];
 
